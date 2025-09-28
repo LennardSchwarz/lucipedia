@@ -1,4 +1,4 @@
-module github.com/lennard/wikipedai
+module lucipedia/app
 
 go 1.23.4
 
