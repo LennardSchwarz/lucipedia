@@ -33,6 +33,8 @@ All pages are thus embedded with an llm and retriaval works via embedding the se
 
 The server is a simple HTTP server that serves HTML via the golang standard http/net library.
 
+The website is server side rendered static content. Templating via templ (https://templ.guide/) and styling via tailwind (https://tailwindcss.com/)
+
 ## Error Handling
 - Use eris (https://github.com/rotisserie/eris) for errors
 - Always log errors with contextual information
