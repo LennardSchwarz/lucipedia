@@ -7,9 +7,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Lint and Test
+  checks:
+    name: Run ${{ matrix.target }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [lint, test]
 
     steps:
       - name: Checkout repository
@@ -25,11 +28,13 @@ jobs:
         run: go mod download
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        if: matrix.target == 'lint'
+        uses: golangci/golangci-lint-action@v8
         with:
           args: --timeout=5m
 
       - name: Run tests
+        if: matrix.target == 'test'
         run: go test ./...
         env:
           CGO_ENABLED: 1
