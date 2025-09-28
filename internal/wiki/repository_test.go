@@ -96,42 +96,6 @@ func TestListPagesReturnsAlphabeticalOrder(t *testing.T) {
 	}
 }
 
-func TestListEmbeddingsFiltersMissingVectors(t *testing.T) {
-	t.Parallel()
-
-	repo := setupRepository(t)
-	ctx := context.Background()
-
-	fixtures := []Page{
-		{Slug: "no-embedding", HTML: "<p>None</p>"},
-		{Slug: "empty-embedding", HTML: "<p>Empty</p>", Embedding: []byte{}},
-		{Slug: "with-embedding", HTML: "<p>Embed</p>", Embedding: []byte("[1,2,3]")},
-	}
-
-	for _, page := range fixtures {
-		p := page
-		if err := repo.CreateOrUpdate(ctx, &p); err != nil {
-			t.Fatalf("CreateOrUpdate returned error: %v", err)
-		}
-	}
-
-	embeddings, err := repo.ListEmbeddings(ctx)
-	if err != nil {
-		t.Fatalf("ListEmbeddings returned error: %v", err)
-	}
-
-	if len(embeddings) != 1 {
-		t.Fatalf("expected 1 embedding entry, got %d", len(embeddings))
-	}
-
-	if embeddings[0].Slug != "with-embedding" {
-		t.Fatalf("expected embedding slug with-embedding, got %q", embeddings[0].Slug)
-	}
-	if string(embeddings[0].Embedding) != "[1,2,3]" {
-		t.Fatalf("expected embedding payload [1,2,3], got %s", string(embeddings[0].Embedding))
-	}
-}
-
 func setupRepository(t *testing.T) *GormRepository {
 	t.Helper()
 

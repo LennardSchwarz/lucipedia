@@ -2,7 +2,7 @@
 
 ## 1. Baseline & Configuration
 - Keep the existing Go module layout (`cmd/server`, `internal/...`) and ensure every package exposes clear, typed APIs.
-- Extend `internal/config` so all runtime values come from environment variables (DB path, server port, log level, LLM endpoint/key, model list, Sentry DSN, embedding model, search limits).
+- Extend `internal/config` so all runtime values come from environment variables (DB path, server port, log level, LLM endpoint/key, model list, Sentry DSN, search limits).
 - Keep configuration parsing verbose and validated with `eris` errors that explain which variable failed and why.
 - Document required variables in `.env.example` and README once the wiring is complete.
 
@@ -13,9 +13,9 @@
 
 ## 3. Database & Persistence Layer
 - Use `internal/db` to open SQLite with WAL mode enabled and expose a single `pages` table.
-- Expand the `wiki.Page` model with fields for the HTML text, optional raw embedding vector (e.g. `[]byte` storing JSON float array), and timestamps.
+- Expand the `wiki.Page` model with fields for the HTML text and timestamps.
 - Add a startup migration (`AutoMigrate`) and make sure schema changes are logged and wrapped with `eris` on failure.
-- Broaden the repository to support: fetching by slug, upserting a page, listing pages, and retrieving embeddings for search.
+- Broaden the repository to support fetching by slug, upserting a page, and listing pages for housekeeping tasks.
 - Provide lightweight repository tests using an in-memory SQLite database to guard against regressions.
 
 ## 4. LLM Content Generation
@@ -25,25 +25,22 @@
 - Decode successful responses into structured HTML/backlink payload, handling safety filter/tool call responses explicitly.
 - Provide a simple mock generator for unit tests and deterministic fixtures for HTML/backlink content.
 
-## 5. Embeddings & Search
-- Introduce an `Embedder` interface that can embed both full page HTML and free-form queries; implement it using the OpenRouter embeddings endpoint via the same client as the generator.
-- Add an `EmbeddingsClient` in `internal/llm` with methods `EmbedPage(ctx, slug, html)` and `EmbedQuery(ctx, query)` returning `[]float32`, reusing shared configuration and logging.
-- Extend repository usage to persist embeddings returned by the embedder and expose them for search without re-calling the LLM.
-- Build a search component (inside `internal/wiki` or a dedicated `internal/search` package) that loads embeddings, computes cosine similarity, and returns the top-K slugs.
-- Cache embeddings in memory on startup for fast KNN queries and refresh the cache whenever a page is regenerated.
-- Add basic metrics/logging for search latency and hit counts to aid tuning.
+## 5. Search Experience
+- Start with a simple text search that scans stored pages and highlights matching slugs or headings.
+- Add configuration flags controlling search result limits and throttling behaviour.
+- Instrument search operations with timing logs so accuracy and latency can be iterated on later.
 
 ## 6. Domain Service
-- Implement `internal/wiki.Service` with dependencies on the repository, generator, embedder, and logger/Sentry hub.
-- Expose `GetPage(ctx, slug)` to fetch or lazily generate pages: check cache/database, call the generator on misses, validate backlinks (ensure `/wiki/...` links), save the page, compute embeddings, and return HTML.
-- Expose `Search(ctx, query, limit)` to embed the query, run KNN against stored embeddings, hydrate page summaries, and return ordered results.
+- Implement `internal/wiki.Service` with dependencies on the repository, generator, and logger/Sentry hub.
+- Expose `GetPage(ctx, slug)` to fetch or lazily generate pages: check cache/database, call the generator on misses, validate backlinks (ensure `/wiki/...` links), save the page, and return HTML.
+- Expose `Search(ctx, query, limit)` to query stored pages using the simple matching logic introduced in the search experience.
 - Make sure every branch wraps and logs errors with the relevant slug or query for traceability.
 
 ## 7. HTTP Transport Layer
 - Build handlers in `internal/http` for:
   - `GET /wiki/{slug}` returning the stored HTML with `Content-Type: text/html`.
   - `GET /search?q=` rendering an HTML results page that links to `/wiki/{slug}` entries ranked by similarity.
-  - `GET /healthz` exposing a simple status check (DB ping, optional embedder/generator readiness).
+  - `GET /healthz` exposing a simple status check (DB ping, generator readiness).
 - Add middleware for request logging, panic recovery, request IDs, and Sentry tracing.
 - Ensure handlers translate domain errors into meaningful HTTP responses (404 when a page truly does not exist, 500 for unexpected errors).
 
@@ -53,9 +50,9 @@
 - Surface startup/shutdown failures with `eris` wrapping and log them before exiting.
 
 ## 9. Testing Strategy
-- Add table-driven unit tests for configuration parsing, DB repository operations, LLM generator fallback logic, embedding calculations, domain service flows, and HTTP handlers.
+- Add table-driven unit tests for configuration parsing, DB repository operations, LLM generator fallback logic, domain service flows, and HTTP handlers.
 - Create an integration test that boots the service with an in-memory DB and mock LLM components to cover the full `/wiki/{slug}` and `/search` flows.
-- Include fixtures for generated HTML with backlinks and deterministic embedding vectors to make assertions straightforward.
+- Include fixtures for generated HTML with backlinks to make assertions straightforward.
 
 ## 10. Developer Experience & Tooling
 - Provide `Makefile` targets for `fmt`, `lint`, `test`, and `run` to keep workflows simple.

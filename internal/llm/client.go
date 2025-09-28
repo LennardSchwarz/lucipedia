@@ -23,18 +23,13 @@ type ClientOptions struct {
 
 // Client wraps the OpenAI SDK services used by Lucipedia.
 type Client struct {
-	chat       chatCompletionClient
-	embeddings embeddingClient
-	logger     *logrus.Logger
-	baseURL    string
+	chat    chatCompletionClient
+	logger  *logrus.Logger
+	baseURL string
 }
 
 type chatCompletionClient interface {
 	New(ctx context.Context, body openai.ChatCompletionNewParams, opts ...option.RequestOption) (*openai.ChatCompletion, error)
-}
-
-type embeddingClient interface {
-	New(ctx context.Context, body openai.EmbeddingNewParams, opts ...option.RequestOption) (*openai.CreateEmbeddingResponse, error)
 }
 
 // NewClient constructs a Client configured for OpenRouter.
@@ -60,10 +55,9 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	apiClient := openai.NewClient(requestOptions...)
 
 	return &Client{
-		chat:       &apiClient.Chat.Completions,
-		embeddings: &apiClient.Embeddings,
-		logger:     opts.Logger,
-		baseURL:    baseURL,
+		chat:    &apiClient.Chat.Completions,
+		logger:  opts.Logger,
+		baseURL: baseURL,
 	}, nil
 }
 

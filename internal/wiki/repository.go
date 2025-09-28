@@ -3,7 +3,6 @@ package wiki
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
@@ -15,7 +14,6 @@ type Repository interface {
 	GetBySlug(ctx context.Context, slug string) (*Page, error)
 	CreateOrUpdate(ctx context.Context, page *Page) error
 	ListPages(ctx context.Context) ([]Page, error)
-	ListEmbeddings(ctx context.Context) ([]PageEmbedding, error)
 }
 
 // GormRepository persists pages using a Gorm database connection.
@@ -34,13 +32,6 @@ func NewRepository(db *gorm.DB, logger *logrus.Logger) (*GormRepository, error) 
 }
 
 var _ Repository = (*GormRepository)(nil)
-
-// PageEmbedding represents the minimal data required for search index refreshes.
-type PageEmbedding struct {
-	Slug      string
-	Embedding []byte
-	UpdatedAt time.Time
-}
 
 // GetBySlug returns the page for the provided slug or nil when not found.
 func (r *GormRepository) GetBySlug(ctx context.Context, slug string) (*Page, error) {
@@ -92,38 +83,6 @@ func (r *GormRepository) ListPages(ctx context.Context) ([]Page, error) {
 	}
 
 	return pages, nil
-}
-
-// ListEmbeddings returns the slug and embedding payload for all pages with an embedding.
-func (r *GormRepository) ListEmbeddings(ctx context.Context) ([]PageEmbedding, error) {
-	var results []PageEmbedding
-
-	rows, err := r.db.WithContext(ctx).
-		Model(&Page{}).
-		Select("slug", "embedding", "updated_at").
-		Where("embedding IS NOT NULL AND length(embedding) > 0").
-		Rows()
-	if err != nil {
-		r.logError(nil, err, "querying page embeddings")
-		return nil, eris.Wrap(err, "querying page embeddings")
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var item PageEmbedding
-		if scanErr := rows.Scan(&item.Slug, &item.Embedding, &item.UpdatedAt); scanErr != nil {
-			r.logError(nil, scanErr, "scanning page embedding row")
-			return nil, eris.Wrap(scanErr, "scanning page embedding row")
-		}
-		results = append(results, item)
-	}
-
-	if rowsErr := rows.Err(); rowsErr != nil {
-		r.logError(nil, rowsErr, "iterating page embedding rows")
-		return nil, eris.Wrap(rowsErr, "iterating page embedding rows")
-	}
-
-	return results, nil
 }
 
 func (r *GormRepository) logError(fields logrus.Fields, err error, message string) {
