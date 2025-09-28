@@ -1,22 +1,17 @@
-name: CI
+name: Lint
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
-  workflow_dispatch:
 
 jobs:
-  checks:
-    name: Run ${{ matrix.target }}
+  lint:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [lint, test]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -28,13 +23,6 @@ jobs:
         run: go mod download
 
       - name: Run golangci-lint
-        if: matrix.target == 'lint'
         uses: golangci/golangci-lint-action@v8
         with:
           args: --timeout=5m
-
-      - name: Run tests
-        if: matrix.target == 'test'
-        run: go test ./...
-        env:
-          CGO_ENABLED: 1
