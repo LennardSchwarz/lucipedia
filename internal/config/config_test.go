@@ -44,8 +44,8 @@ func TestLoadDefaults(t *testing.T) {
 		t.Errorf("expected nil LLMModels, got %v", cfg.LLMModels)
 	}
 
-	if cfg.LLMEndpoint != "" {
-		t.Errorf("expected empty LLM endpoint, got %q", cfg.LLMEndpoint)
+	if cfg.LLMEndpoint != defaultLLMEndpoint {
+		t.Errorf("expected default LLM endpoint %q, got %q", defaultLLMEndpoint, cfg.LLMEndpoint)
 	}
 
 	if cfg.LLMAPIKey != "" {

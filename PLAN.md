@@ -19,13 +19,16 @@
 - Provide lightweight repository tests using an in-memory SQLite database to guard against regressions.
 
 ## 4. LLM Content Generation
-- Define a `Generator` interface in `internal/llm` with `Generate(ctx, slug) (html string, backlinks []string, err error)`.
-- Implement an HTTP client that calls the configured LLM endpoint, forwards the API key, and decodes responses with generous logging and `eris` wrapping.
+- Define a `Generator` interface in `internal/llm` with `Generate(ctx, slug) (HTML string, backlinks []string, err error)`.
+- Implement `openrouter.Client` wrapping `openai-go v2.7.0`, configured via environment variables (base URL, API key, default model) and instrumented with logrus + eris.
+- Build a prompt composer that receives the slug, optional context backlinks, and returns deterministic prompts used by the OpenRouter chat completion API.
+- Decode successful responses into structured HTML/backlink payload, handling safety filter/tool call responses explicitly.
 - Provide a simple mock generator for unit tests and deterministic fixtures for HTML/backlink content.
 
 ## 5. Embeddings & Search
-- Introduce an `Embedder` interface that can embed both full page HTML and free-form queries; implement it using the configured LLM provider or a dedicated embeddings endpoint.
-- Persist page embeddings alongside the HTML so search can run without calling the LLM.
+- Introduce an `Embedder` interface that can embed both full page HTML and free-form queries; implement it using the OpenRouter embeddings endpoint via the same client as the generator.
+- Add an `EmbeddingsClient` in `internal/llm` with methods `EmbedPage(ctx, slug, html)` and `EmbedQuery(ctx, query)` returning `[]float32`, reusing shared configuration and logging.
+- Extend repository usage to persist embeddings returned by the embedder and expose them for search without re-calling the LLM.
 - Build a search component (inside `internal/wiki` or a dedicated `internal/search` package) that loads embeddings, computes cosine similarity, and returns the top-K slugs.
 - Cache embeddings in memory on startup for fast KNN queries and refresh the cache whenever a page is regenerated.
 - Add basic metrics/logging for search latency and hit counts to aid tuning.

@@ -28,6 +28,7 @@ const (
 	defaultLogLevel      = "info"
 	defaultEnvironment   = "development"
 	defaultShutdownGrace = 10 * time.Second
+	defaultLLMEndpoint   = "https://openrouter.ai/api/v1"
 )
 
 // Load reads configuration values from environment variables, applying defaults where necessary.
@@ -35,7 +36,7 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		DBPath:        getEnv("DB_PATH", defaultDBPath),
 		LogLevel:      getEnv("LOG_LEVEL", defaultLogLevel),
-		LLMEndpoint:   os.Getenv("LLM_ENDPOINT"),
+		LLMEndpoint:   getEnv("LLM_ENDPOINT", defaultLLMEndpoint),
 		LLMAPIKey:     os.Getenv("LLM_API_KEY"),
 		SentryDSN:     os.Getenv("SENTRY_DSN"),
 		Environment:   getEnv("ENV", defaultEnvironment),
