@@ -19,7 +19,7 @@ services:
       - data:/app/db-data
     labels:
       traefik.enable: true
-      traefik.http.routers.lucipedia.rule: Host(`lucipedia.lenn.dev`) # router name and subdomain
+      traefik.http.routers.lucipedia.rule: Host(`lucipedia.lenn.rocks`) # router name and subdomain
       traefik.http.services.lucipedia.loadbalancer.server.port: 8080 # port that is fowarded to internally by treafik
 
 volumes:

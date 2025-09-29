@@ -2,7 +2,7 @@
 
 Wikipedia clone where all content is AI generated.
 
-Check it out here: [lucipedia.lenn.dev](https://lucipedia.lenn.dev)
+Check it out here: [lucipedia.lenn.rocks](https://lucipedia.lenn.rocks)
 
 
 ## Deployment
