@@ -1,6 +1,6 @@
 module lucipedia/app
 
-go 1.23.4
+go 1.24.3
 
 require (
 	github.com/getsentry/sentry-go v0.35.3
