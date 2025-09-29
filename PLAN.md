@@ -22,7 +22,7 @@
 - Define a `Generator` interface in `internal/llm` with `Generate(ctx, slug) (HTML string, backlinks []string, err error)`.
 - Implement `openrouter.Client` wrapping `openai-go v2.7.0`, configured via environment variables (base URL, API key, default model) and instrumented with logrus + eris.
 - Build a prompt composer that receives the slug, optional context backlinks, and returns deterministic prompts used by the OpenRouter chat completion API.
-- Decode successful responses into structured HTML/backlink payload, handling safety filter/tool call responses explicitly.
+- Decode successful responses as raw HTML, extract backlinks by scanning `/wiki/{slug}` anchors, and continue handling safety filter/tool call responses explicitly.
 - Provide a simple mock generator for unit tests and deterministic fixtures for HTML/backlink content.
 
 ## 5. Search Experience
@@ -53,6 +53,7 @@
 - Add table-driven unit tests for configuration parsing, DB repository operations, LLM generator fallback logic, domain service flows, and HTTP handlers.
 - Create an integration test that boots the service with an in-memory DB and mock LLM components to cover the full `/wiki/{slug}` and `/search` flows.
 - Include fixtures for generated HTML with backlinks to make assertions straightforward.
+- Offer an opt-in live generator test to manually validate OpenRouter performance end-to-end.
 
 ## 10. Developer Experience & Tooling
 - Provide `Makefile` targets for `fmt`, `lint`, `test`, and `run` to keep workflows simple.

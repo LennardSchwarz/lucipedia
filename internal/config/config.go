@@ -23,12 +23,11 @@ type Config struct {
 }
 
 const (
-	defaultDBPath        = "./wikipedai.db"
+	defaultDBPath        = "./lucipedia.db"
 	defaultServerPort    = 8080
 	defaultLogLevel      = "info"
 	defaultEnvironment   = "development"
 	defaultShutdownGrace = 10 * time.Second
-	defaultLLMEndpoint   = "https://openrouter.ai/api/v1"
 )
 
 // Load reads configuration values from environment variables, applying defaults where necessary.
@@ -36,10 +35,10 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		DBPath:        getEnv("DB_PATH", defaultDBPath),
 		LogLevel:      getEnv("LOG_LEVEL", defaultLogLevel),
-		LLMEndpoint:   getEnv("LLM_ENDPOINT", defaultLLMEndpoint),
+		LLMEndpoint:   os.Getenv("LLM_ENDPOINT"),
 		LLMAPIKey:     os.Getenv("LLM_API_KEY"),
 		SentryDSN:     os.Getenv("SENTRY_DSN"),
-		Environment:   getEnv("ENV", defaultEnvironment),
+		Environment:   os.Getenv("ENV"),
 		ShutdownGrace: defaultShutdownGrace,
 	}
 

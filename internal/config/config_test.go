@@ -32,20 +32,12 @@ func TestLoadDefaults(t *testing.T) {
 		t.Errorf("expected default log level %q, got %q", defaultLogLevel, cfg.LogLevel)
 	}
 
-	if cfg.Environment != defaultEnvironment {
-		t.Errorf("expected default environment %q, got %q", defaultEnvironment, cfg.Environment)
-	}
-
 	if cfg.ShutdownGrace != defaultShutdownGrace {
 		t.Errorf("expected shutdown grace %s, got %s", defaultShutdownGrace, cfg.ShutdownGrace)
 	}
 
 	if cfg.LLMModels != nil {
 		t.Errorf("expected nil LLMModels, got %v", cfg.LLMModels)
-	}
-
-	if cfg.LLMEndpoint != defaultLLMEndpoint {
-		t.Errorf("expected default LLM endpoint %q, got %q", defaultLLMEndpoint, cfg.LLMEndpoint)
 	}
 
 	if cfg.LLMAPIKey != "" {

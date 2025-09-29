@@ -11,8 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const openRouterBaseURL = "https://openrouter.ai/api/v1"
-
 // ClientOptions controls how the OpenRouter client is initialised.
 type ClientOptions struct {
 	APIKey     string
@@ -40,7 +38,7 @@ func NewClient(opts ClientOptions) (*Client, error) {
 
 	baseURL := strings.TrimSpace(opts.BaseURL)
 	if baseURL == "" {
-		baseURL = openRouterBaseURL
+		return nil, eris.New("base url is required")
 	}
 
 	requestOptions := []option.RequestOption{

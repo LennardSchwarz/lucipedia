@@ -2,15 +2,16 @@ package llm
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/openai/openai-go/v2"
 	"github.com/openai/openai-go/v2/shared"
-	"github.com/openai/openai-go/v2/shared/constant"
 	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
+
+	
 )
 
 // Generator defines the behaviour for producing Lucipedia page content.
@@ -27,18 +28,19 @@ type GeneratorOptions struct {
 }
 
 type openRouterGenerator struct {
-	client         *Client
-	logger         *logrus.Logger
-	model          string
-	temperature    float64
-	systemPrompt   string
-	responseFormat openai.ChatCompletionNewParamsResponseFormatUnion
+	client       *Client
+	logger       *logrus.Logger
+	model        string
+	temperature  float64
+	systemPrompt string
 }
 
 const (
-	defaultGeneratorSystemPrompt = "You are Lucipedia, an AI historian. Produce detailed HTML articles with multiple internal backlinks using <a href=\"/wiki/...\"> links."
-	defaultGeneratorTemperature  = 0.7
+	defaultGeneratorSystemPrompt = "You are an expert historian who works on an wikipedia clone called lucipedia. Produce detailed HTML articles with multiple internal backlinks using <a href=\"/wiki/...\"> links. Respond with valid HTML only."
+	defaultGeneratorTemperature  = 0.4
 )
+
+var wikiLinkPattern = regexp.MustCompile(`href="/wiki/([^"#?]+)"`)
 
 // NewGenerator constructs a Generator implementation backed by OpenRouter.
 func NewGenerator(opts GeneratorOptions) (Generator, error) {
@@ -62,12 +64,11 @@ func NewGenerator(opts GeneratorOptions) (Generator, error) {
 	}
 
 	return &openRouterGenerator{
-		client:         opts.Client,
-		logger:         opts.Client.logger,
-		model:          model,
-		temperature:    temperature,
-		systemPrompt:   systemPrompt,
-		responseFormat: buildArticleResponseFormat(),
+		client:       opts.Client,
+		logger:       opts.Client.logger,
+		model:        model,
+		temperature:  temperature,
+		systemPrompt: systemPrompt,
 	}, nil
 }
 
@@ -81,10 +82,9 @@ func (g *openRouterGenerator) Generate(ctx context.Context, slug string) (string
 		Model: shared.ChatModel(g.model),
 		Messages: []openai.ChatCompletionMessageParamUnion{
 			openai.SystemMessage(g.systemPrompt),
-			openai.UserMessage(fmt.Sprintf("Write a Lucipedia article for the slug '%s'. Return JSON that matches the provided schema.", trimmedSlug)),
+			openai.UserMessage(fmt.Sprintf("Write a Lucipedia article for the slug '%s'. Respond with only valid HTML.", trimmedSlug)),
 		},
-		ResponseFormat: g.responseFormat,
-		Temperature:    openai.Float(g.temperature),
+		Temperature: openai.Float(g.temperature),
 	}
 
 	completion, err := g.client.chat.New(ctx, params)
@@ -112,40 +112,15 @@ func (g *openRouterGenerator) Generate(ctx context.Context, slug string) (string
 		return "", nil, err
 	}
 
-	payload, err := g.parsePayload(choice.Message.Content)
-	if err != nil {
-		g.logError(logrus.Fields{"slug": trimmedSlug}, err, "parsing llm response")
+	html := strings.TrimSpace(choice.Message.Content)
+	if html == "" {
+		err := eris.New("llm response content is empty")
+		g.logError(logrus.Fields{"slug": trimmedSlug}, err, "empty llm response")
 		return "", nil, err
 	}
 
-	return payload.HTML, payload.Backlinks, nil
-}
-
-type generatorPayload struct {
-	HTML      string   `json:"html"`
-	Backlinks []string `json:"backlinks"`
-}
-
-func (g *openRouterGenerator) parsePayload(raw string) (*generatorPayload, error) {
-	trimmed := strings.TrimSpace(raw)
-	if trimmed == "" {
-		return nil, eris.New("llm response content is empty")
-	}
-
-	var payload generatorPayload
-	if err := json.Unmarshal([]byte(trimmed), &payload); err != nil {
-		return nil, eris.Wrap(err, "decoding llm response json")
-	}
-
-	if strings.TrimSpace(payload.HTML) == "" {
-		return nil, eris.New("llm response missing html field")
-	}
-
-	if payload.Backlinks == nil {
-		payload.Backlinks = []string{}
-	}
-
-	return &payload, nil
+	backlinks := g.extractBacklinks(html)
+	return html, backlinks, nil
 }
 
 func (g *openRouterGenerator) logError(fields logrus.Fields, err error, message string) {
@@ -160,34 +135,31 @@ func (g *openRouterGenerator) logError(fields logrus.Fields, err error, message 
 	entry.Error(message)
 }
 
-func buildArticleResponseFormat() openai.ChatCompletionNewParamsResponseFormatUnion {
-	schema := map[string]any{
-		"type":     "object",
-		"required": []string{"html", "backlinks"},
-		"properties": map[string]any{
-			"html": map[string]any{
-				"type":        "string",
-				"description": "Full HTML document for the Lucipedia page.",
-			},
-			"backlinks": map[string]any{
-				"type": "array",
-				"items": map[string]any{
-					"type": "string",
-				},
-				"description": "Slugs referenced within the article as /wiki/{slug} links.",
-			},
-		},
+func (g *openRouterGenerator) extractBacklinks(html string) []string {
+	matches := wikiLinkPattern.FindAllStringSubmatch(html, -1)
+	if len(matches) == 0 {
+		return []string{}
 	}
 
-	return openai.ChatCompletionNewParamsResponseFormatUnion{
-		OfJSONSchema: &openai.ResponseFormatJSONSchemaParam{
-			JSONSchema: openai.ResponseFormatJSONSchemaJSONSchemaParam{
-				Name:        "lucipedia_article",
-				Description: openai.String("Structured Lucipedia article payload"),
-				Strict:      openai.Bool(true),
-				Schema:      schema,
-			},
-			Type: constant.ValueOf[constant.JSONSchema](),
-		},
+	seen := make(map[string]struct{}, len(matches))
+	backlinks := make([]string, 0, len(matches))
+
+	for _, match := range matches {
+		if len(match) < 2 {
+			continue
+		}
+
+		slug := strings.TrimSpace(match[1])
+		if slug == "" {
+			continue
+		}
+
+		if _, exists := seen[slug]; exists {
+			continue
+		}
+		seen[slug] = struct{}{}
+		backlinks = append(backlinks, slug)
 	}
+
+	return backlinks
 }
