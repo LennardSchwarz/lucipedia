@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    pull_policy: build # Necessary to trigger rebuild on docker-compose up via Portainer
     restart: unless-stopped
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
@@ -11,6 +12,9 @@ services:
       LLM_MODELS: ${LLM_MODELS}
       SENTRY_DSN: ${SENTRY_DSN:-}
       ENV: prod
+    networks:
+      - traefik-proxy
+      - internal
     volumes:
       - data:/app/db-data
     labels:
@@ -20,3 +24,8 @@ services:
 
 volumes:
   data:
+
+networks:
+  traefik-proxy:
+    external: true # hook into traefik-proxy network created by traefik
+  internal:
