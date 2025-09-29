@@ -5,16 +5,14 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DB_PATH: ${DB_PATH:-/app/data/lucipedia.db}
-      SERVER_PORT: ${SERVER_PORT:-8080}
       LOG_LEVEL: ${LOG_LEVEL}
       LLM_ENDPOINT: ${LLM_ENDPOINT}
       LLM_API_KEY: ${LLM_API_KEY}
       LLM_MODELS: ${LLM_MODELS}
       SENTRY_DSN: ${SENTRY_DSN:-}
-      ENV: ${ENV:}
+      ENV: prod
     volumes:
-      - data:/app/data
+      - data:/app/db-data
     labels:
       traefik.enable: true
       traefik.http.routers.lucipedia.rule: Host(`lucipedia.lenn.dev`) # router name and subdomain
