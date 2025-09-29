@@ -16,6 +16,7 @@ type Repository interface {
 	ListPages(ctx context.Context) ([]Page, error)
 	CountPages(ctx context.Context) (int64, error)
 	RandomPage(ctx context.Context) (*Page, error)
+	MostRecentPage(ctx context.Context) (*Page, error)
 }
 
 // GormRepository persists pages using a Gorm database connection.
@@ -109,6 +110,21 @@ func (r *GormRepository) RandomPage(ctx context.Context) (*Page, error) {
 		}
 		r.logError(nil, err, "selecting random page")
 		return nil, eris.Wrap(err, "selecting random page")
+	}
+
+	return &page, nil
+}
+
+// MostRecentPage returns the latest created page ordered by CreatedAt descending.
+func (r *GormRepository) MostRecentPage(ctx context.Context) (*Page, error) {
+	var page Page
+
+	if err := r.db.WithContext(ctx).Order("created_at DESC").First(&page).Error; err != nil {
+		if eris.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		r.logError(nil, err, "selecting most recent page")
+		return nil, eris.Wrap(err, "selecting most recent page")
 	}
 
 	return &page, nil

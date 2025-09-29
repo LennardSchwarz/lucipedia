@@ -16,6 +16,7 @@ type Service interface {
 	GetPage(ctx context.Context, slug string) (string, error)
 	Search(ctx context.Context, query string, limit int) ([]SearchResult, error)
 	RandomSlug(ctx context.Context) (string, error)
+	MostRecentPage(ctx context.Context) (*Page, error)
 }
 
 type service struct {
@@ -158,6 +159,40 @@ func (s *service) RandomSlug(ctx context.Context) (string, error) {
 	}
 
 	return slug, nil
+}
+
+func (s *service) MostRecentPage(ctx context.Context) (*Page, error) {
+	page, err := s.repo.MostRecentPage(ctx)
+	if err != nil {
+		s.recordError(nil, err, "retrieving most recent wiki page")
+		return nil, eris.Wrap(err, "retrieving most recent wiki page")
+	}
+
+	if page == nil {
+		wrapped := eris.Wrap(ErrNoPages, "retrieving most recent wiki page")
+		s.recordError(nil, wrapped, "retrieving most recent wiki page")
+		return nil, wrapped
+	}
+
+	trimmedSlug := strings.TrimSpace(page.Slug)
+	if trimmedSlug == "" {
+		err := eris.New("most recent page slug is empty")
+		s.recordError(logrus.Fields{"page_id": page.ID}, err, "validating most recent wiki page")
+		return nil, eris.Wrap(err, "validating most recent wiki page")
+	}
+
+	html := strings.TrimSpace(page.HTML)
+	if html == "" {
+		err := eris.New("most recent page html is empty")
+		s.recordError(logrus.Fields{"page_id": page.ID}, err, "validating most recent wiki page")
+		return nil, eris.Wrap(err, "validating most recent wiki page")
+	}
+
+	copyPage := *page
+	copyPage.Slug = trimmedSlug
+	copyPage.HTML = html
+
+	return &copyPage, nil
 }
 
 func (s *service) recordError(fields logrus.Fields, err error, message string) {

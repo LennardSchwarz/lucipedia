@@ -60,6 +60,14 @@ func (s *Server) registerRandomRoute() {
 	))
 }
 
+func (s *Server) registerMostRecentRoute() {
+	huma.Get(s.api, "/most-recent", s.mostRecentHandler, htmlOperation(
+		"Fetch most recent page",
+		stdhttp.StatusNotFound,
+		stdhttp.StatusInternalServerError,
+	))
+}
+
 func (s *Server) registerWikiRoute() {
 	huma.Get(s.api, "/wiki/{slug}", s.wikiHandler, htmlOperation(
 		"Fetch wiki page",
@@ -133,6 +141,24 @@ func (s *Server) randomHandler(ctx context.Context, _ *struct{}) (*htmlResponse,
 	response.Location = "/wiki/" + slug
 
 	return response, nil
+}
+
+func (s *Server) mostRecentHandler(ctx context.Context, _ *struct{}) (*htmlResponse, error) {
+	page, err := s.wiki.MostRecentPage(ctx)
+	if err != nil {
+		status := stdhttp.StatusInternalServerError
+		message := errorFallbackMessage
+
+		if eris.Is(err, wiki.ErrNoPages) {
+			status = stdhttp.StatusNotFound
+			message = "Lucipedia doesn't have any pages yet. Follow a link to generate the first article."
+		}
+
+		s.recordError(ctx, err, "loading most recent page", nil)
+		return s.renderErrorResponse(ctx, status, message)
+	}
+
+	return newHTMLResponse(stdhttp.StatusOK, []byte(page.HTML)), nil
 }
 
 func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*htmlResponse, error) {

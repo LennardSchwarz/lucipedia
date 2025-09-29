@@ -104,6 +104,46 @@ func TestRandomRouteRedirectsToWikiSlug(t *testing.T) {
 	}
 }
 
+func TestMostRecentRouteServesHTML(t *testing.T) {
+	t.Parallel()
+
+	service := &stubWikiService{mostRecent: &wiki.Page{Slug: "alpha", HTML: "<p>Alpha</p>"}}
+	srv := newTestServer(t, service, &stubRepository{count: 1})
+
+	req := httptest.NewRequest("GET", "/most-recent", nil)
+	rec := httptest.NewRecorder()
+
+	srv.ServeHTTP(rec, req)
+
+	if rec.Code != 200 {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+
+	if rec.Body.String() != "<p>Alpha</p>" {
+		t.Fatalf("expected most recent HTML in body, got %q", rec.Body.String())
+	}
+}
+
+func TestMostRecentRouteHandlesMissingPages(t *testing.T) {
+	t.Parallel()
+
+	service := &stubWikiService{mostRecentErr: wiki.ErrNoPages}
+	srv := newTestServer(t, service, &stubRepository{count: 0})
+
+	req := httptest.NewRequest("GET", "/most-recent", nil)
+	rec := httptest.NewRecorder()
+
+	srv.ServeHTTP(rec, req)
+
+	if rec.Code != 404 {
+		t.Fatalf("expected status 404, got %d", rec.Code)
+	}
+
+	if !contains(rec.Body.String(), "Follow a link to generate the first article") {
+		t.Fatalf("expected helpful message in body, got %q", rec.Body.String())
+	}
+}
+
 func TestRandomRouteHandlesMissingPages(t *testing.T) {
 	t.Parallel()
 
@@ -225,6 +265,8 @@ type stubWikiService struct {
 	searchErr     error
 	randomSlug    string
 	randomErr     error
+	mostRecent    *wiki.Page
+	mostRecentErr error
 }
 
 func (s *stubWikiService) GetPage(_ context.Context, _ string) (string, error) {
@@ -239,6 +281,13 @@ func (s *stubWikiService) RandomSlug(_ context.Context) (string, error) {
 		return "", s.randomErr
 	}
 	return s.randomSlug, nil
+}
+
+func (s *stubWikiService) MostRecentPage(_ context.Context) (*wiki.Page, error) {
+	if s.mostRecentErr != nil {
+		return nil, s.mostRecentErr
+	}
+	return s.mostRecent, nil
 }
 
 func (s *stubWikiService) Search(_ context.Context, _ string, _ int) ([]wiki.SearchResult, error) {
@@ -265,6 +314,10 @@ func (s *stubRepository) ListPages(_ context.Context) ([]wiki.Page, error) {
 }
 
 func (s *stubRepository) RandomPage(_ context.Context) (*wiki.Page, error) {
+	return nil, nil
+}
+
+func (s *stubRepository) MostRecentPage(_ context.Context) (*wiki.Page, error) {
 	return nil, nil
 }
 

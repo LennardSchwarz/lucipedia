@@ -5,6 +5,7 @@ import (
 	"io"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
@@ -231,6 +232,70 @@ func TestServiceSearchPropagatesSearcherError(t *testing.T) {
 
 	if stub.calls != 1 {
 		t.Fatalf("expected searcher to be invoked once, got %d", stub.calls)
+	}
+}
+
+func TestServiceMostRecentPageReturnsErrorWhenEmpty(t *testing.T) {
+	t.Parallel()
+
+	repo, generator, searcher, cleanup := setupServiceDependencies(t, "most-recent-empty.db")
+	defer cleanup()
+
+	service, err := NewService(repo, generator, searcher, silentLogger(), nil)
+	if err != nil {
+		t.Fatalf("NewService returned error: %v", err)
+	}
+
+	if _, err := service.MostRecentPage(context.Background()); err == nil {
+		t.Fatalf("expected ErrNoPages when repository is empty")
+	} else if !eris.Is(err, ErrNoPages) {
+		t.Fatalf("expected ErrNoPages, got %v", err)
+	}
+}
+
+func TestServiceMostRecentPageReturnsLatestEntry(t *testing.T) {
+	t.Parallel()
+
+	repo, generator, searcher, cleanup := setupServiceDependencies(t, "most-recent-existing.db")
+	defer cleanup()
+
+	ctx := context.Background()
+
+	entries := []struct {
+		slug    string
+		html    string
+		created time.Time
+	}{
+		{slug: "alpha", html: "<p>A</p>", created: time.Now().Add(-2 * time.Hour)},
+		{slug: "beta", html: "  <p>Latest</p>  ", created: time.Now()},
+	}
+
+	for _, entry := range entries {
+		page := &Page{Slug: entry.slug, HTML: entry.html}
+		if err := repo.CreateOrUpdate(ctx, page); err != nil {
+			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		}
+		if err := repo.db.WithContext(ctx).Model(&Page{}).Where("slug = ?", entry.slug).Update("created_at", entry.created).Error; err != nil {
+			t.Fatalf("updating created_at returned error: %v", err)
+		}
+	}
+
+	service, err := NewService(repo, generator, searcher, silentLogger(), nil)
+	if err != nil {
+		t.Fatalf("NewService returned error: %v", err)
+	}
+
+	page, err := service.MostRecentPage(ctx)
+	if err != nil {
+		t.Fatalf("MostRecentPage returned error: %v", err)
+	}
+
+	if page.Slug != "beta" {
+		t.Fatalf("expected slug beta, got %q", page.Slug)
+	}
+
+	if page.HTML != "<p>Latest</p>" {
+		t.Fatalf("expected trimmed HTML '<p>Latest</p>', got %q", page.HTML)
 	}
 }
 

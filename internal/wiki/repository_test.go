@@ -5,6 +5,7 @@ import (
 	"io"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -165,6 +166,65 @@ func TestRandomPageReturnsExistingEntry(t *testing.T) {
 
 	if _, ok := valid[page.Slug]; !ok {
 		t.Fatalf("unexpected slug %q returned", page.Slug)
+	}
+}
+
+func TestMostRecentPageReturnsNilWhenEmpty(t *testing.T) {
+	t.Parallel()
+
+	repo := setupRepository(t)
+
+	page, err := repo.MostRecentPage(context.Background())
+	if err != nil {
+		t.Fatalf("MostRecentPage returned error: %v", err)
+	}
+
+	if page != nil {
+		t.Fatalf("expected nil page when repository is empty, got %#v", page)
+	}
+}
+
+func TestMostRecentPageReturnsLatestEntry(t *testing.T) {
+	t.Parallel()
+
+	repo := setupRepository(t)
+	ctx := context.Background()
+
+	entries := []struct {
+		slug    string
+		html    string
+		created time.Time
+	}{
+		{slug: "alpha", html: "<p>A</p>", created: time.Now().Add(-2 * time.Hour)},
+		{slug: "beta", html: "<p>B</p>", created: time.Now().Add(-1 * time.Hour)},
+		{slug: "gamma", html: "<p>G</p>", created: time.Now()},
+	}
+
+	for _, entry := range entries {
+		page := &Page{Slug: entry.slug, HTML: entry.html}
+		if err := repo.CreateOrUpdate(ctx, page); err != nil {
+			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		}
+		if err := repo.db.WithContext(ctx).Model(&Page{}).Where("slug = ?", entry.slug).Update("created_at", entry.created).Error; err != nil {
+			t.Fatalf("updating created_at returned error: %v", err)
+		}
+	}
+
+	page, err := repo.MostRecentPage(ctx)
+	if err != nil {
+		t.Fatalf("MostRecentPage returned error: %v", err)
+	}
+
+	if page == nil {
+		t.Fatalf("expected MostRecentPage to return a page")
+	}
+
+	if page.Slug != "gamma" {
+		t.Fatalf("expected most recent page slug to be gamma, got %q", page.Slug)
+	}
+
+	if page.HTML != "<p>G</p>" {
+		t.Fatalf("expected HTML for most recent page to be preserved, got %q", page.HTML)
 	}
 }
 
