@@ -119,6 +119,11 @@ func run(ctx context.Context) error {
 		Database:    dbConn,
 		Logger:      logger,
 		SentryHub:   sentryHub,
+		RateLimiter: apphttp.RateLimiterSettings{
+			Burst:             cfg.RateLimit.Burst,
+			RequestsPerSecond: cfg.RateLimit.RequestsPerSecond,
+			ClientTTL:         cfg.RateLimit.ClientTTL,
+		},
 	})
 	if err != nil {
 		return eris.Wrap(err, "initialising http transport")

@@ -3,9 +3,11 @@ package http
 import (
 	"context"
 	"io"
+	stdhttp "net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
@@ -229,6 +231,52 @@ func TestSearchRouteReturns500OnFailure(t *testing.T) {
 	}
 }
 
+func TestRateLimiterMiddlewareCapsRequests(t *testing.T) {
+	t.Parallel()
+
+	srv := newTestServer(t, &stubWikiService{}, &stubRepository{count: 1})
+
+	current := time.Unix(0, 0)
+	srv.rateLimiter.now = func() time.Time {
+		return current
+	}
+
+	for i := 0; i < 3; i++ {
+		rec := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", "/", nil)
+		srv.ServeHTTP(rec, req)
+		if rec.Code != stdhttp.StatusOK {
+			t.Fatalf("expected request %d to be allowed, got status %d", i+1, rec.Code)
+		}
+	}
+
+	fourthRec := httptest.NewRecorder()
+	fourthReq := httptest.NewRequest("GET", "/", nil)
+	srv.ServeHTTP(fourthRec, fourthReq)
+
+	if fourthRec.Code != stdhttp.StatusTooManyRequests {
+		t.Fatalf("expected status %d, got %d", stdhttp.StatusTooManyRequests, fourthRec.Code)
+	}
+
+	if header := fourthRec.Header().Get("Retry-After"); header != "1" {
+		t.Fatalf("expected Retry-After header to be 1, got %q", header)
+	}
+
+	if body := fourthRec.Body.String(); !contains(body, "Too Many Requests") || !contains(body, "Please wait a moment") {
+		t.Fatalf("expected rate limit message in body, got %q", body)
+	}
+
+	current = current.Add(time.Second)
+
+	postRec := httptest.NewRecorder()
+	postReq := httptest.NewRequest("GET", "/", nil)
+	srv.ServeHTTP(postRec, postReq)
+
+	if postRec.Code != stdhttp.StatusOK {
+		t.Fatalf("expected status %d after refill, got %d", stdhttp.StatusOK, postRec.Code)
+	}
+}
+
 func TestHealthRouteReportsOK(t *testing.T) {
 	t.Parallel()
 
@@ -264,6 +312,11 @@ func newTestServer(t *testing.T, svc wiki.Service, repo wiki.Repository) *Server
 		Generator:   &stubGenerator{},
 		Database:    gormDB,
 		Logger:      logger,
+		RateLimiter: RateLimiterSettings{
+			Burst:             3,
+			RequestsPerSecond: 3,
+			ClientTTL:         time.Minute,
+		},
 	})
 	if err != nil {
 		t.Fatalf("NewServer returned error: %v", err)

@@ -20,23 +20,39 @@ type Config struct {
 	SentryDSN     string
 	Environment   string
 	ShutdownGrace time.Duration
+	RateLimit     RateLimitConfig
 }
 
 const (
-	defaultDBPath        = "./db-data/lucipedia.db"
-	defaultServerPort    = 8080
-	defaultLogLevel      = "info"
+	defaultDBPath                     = "./db-data/lucipedia.db"
+	defaultServerPort                 = 8080
+	defaultLogLevel                   = "info"
+	defaultRateLimitBurst             = 3
+	defaultRateLimitRequestsPerSecond = 3.0
+	defaultRateLimitClientTTL         = time.Minute
 )
+
+// RateLimitConfig holds configuration for HTTP rate limiting.
+type RateLimitConfig struct {
+	RequestsPerSecond float64
+	Burst             int
+	ClientTTL         time.Duration
+}
 
 // Load reads configuration values from environment variables, applying defaults where necessary.
 func Load() (*Config, error) {
 	cfg := &Config{
-		DBPath:        getEnv("DB_PATH", defaultDBPath),
-		LogLevel:      getEnv("LOG_LEVEL", defaultLogLevel),
-		LLMEndpoint:   os.Getenv("LLM_ENDPOINT"),
-		LLMAPIKey:     os.Getenv("LLM_API_KEY"),
-		SentryDSN:     os.Getenv("SENTRY_DSN"),
-		Environment:   os.Getenv("ENV"),
+		DBPath:      getEnv("DB_PATH", defaultDBPath),
+		LogLevel:    getEnv("LOG_LEVEL", defaultLogLevel),
+		LLMEndpoint: os.Getenv("LLM_ENDPOINT"),
+		LLMAPIKey:   os.Getenv("LLM_API_KEY"),
+		SentryDSN:   os.Getenv("SENTRY_DSN"),
+		Environment: os.Getenv("ENV"),
+		RateLimit: RateLimitConfig{
+			RequestsPerSecond: defaultRateLimitRequestsPerSecond,
+			Burst:             defaultRateLimitBurst,
+			ClientTTL:         defaultRateLimitClientTTL,
+		},
 	}
 
 	if modelsJSON := os.Getenv("LLM_MODELS"); modelsJSON != "" {

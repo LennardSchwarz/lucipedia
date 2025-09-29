@@ -3,15 +3,20 @@ package http
 import (
 	"context"
 	"fmt"
+	"net"
 	stdhttp "net/http"
+	"strings"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
 )
+
+const rateLimitMessage = "You're exploring Lucipedia a bit too quickly. Please wait a moment and try again."
 
 func (s *Server) requestIDMiddleware() func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
@@ -25,6 +30,63 @@ func (s *Server) requestIDMiddleware() func(huma.Context, func(huma.Context)) {
 		}
 
 		next(ctx)
+	}
+}
+
+func (s *Server) rateLimitMiddleware() func(huma.Context, func(huma.Context)) {
+	return func(ctx huma.Context, next func(huma.Context)) {
+		if s.rateLimiter == nil {
+			next(ctx)
+			return
+		}
+
+		req, _ := humago.Unwrap(ctx)
+		if req == nil {
+			next(ctx)
+			return
+		}
+
+		ip := clientIPFromRequest(req)
+		if s.rateLimiter.Allow(ip) {
+			next(ctx)
+			return
+		}
+
+		err := eris.New("rate limit exceeded")
+		if s.logger != nil {
+			fields := logrus.Fields{
+				"ip":   ip,
+				"path": req.URL.Path,
+			}
+			if requestID := RequestIDFromContext(ctx.Context()); requestID != "" {
+				fields["request_id"] = requestID
+			}
+			s.logger.WithError(err).WithFields(fields).Warn("request rate limited")
+		}
+
+		resp, renderErr := s.renderErrorResponse(ctx.Context(), stdhttp.StatusTooManyRequests, rateLimitMessage)
+		if renderErr != nil && s.logger != nil {
+			fields := logrus.Fields{
+				"ip":   ip,
+				"path": req.URL.Path,
+			}
+			if requestID := RequestIDFromContext(ctx.Context()); requestID != "" {
+				fields["request_id"] = requestID
+			}
+			s.logger.WithError(renderErr).WithFields(fields).Error("rendering rate limit response failed")
+		}
+
+		ctx.SetStatus(stdhttp.StatusTooManyRequests)
+		ctx.SetHeader("Retry-After", "1")
+
+		if resp != nil {
+			if resp.ContentType != "" {
+				ctx.SetHeader("Content-Type", resp.ContentType)
+			}
+			if len(resp.Body) > 0 {
+				_, _ = ctx.BodyWriter().Write(resp.Body)
+			}
+		}
 	}
 }
 
@@ -121,4 +183,30 @@ func (s *Server) sentryMiddleware() func(huma.Context, func(huma.Context)) {
 
 		next(ctx)
 	}
+}
+
+func clientIPFromRequest(req *stdhttp.Request) string {
+	if req == nil {
+		return ""
+	}
+
+	if forwarded := strings.TrimSpace(req.Header.Get("X-Forwarded-For")); forwarded != "" {
+		parts := strings.Split(forwarded, ",")
+		if len(parts) > 0 {
+			candidate := strings.TrimSpace(parts[0])
+			if candidate != "" {
+				return candidate
+			}
+		}
+	}
+
+	if realIP := strings.TrimSpace(req.Header.Get("X-Real-IP")); realIP != "" {
+		return realIP
+	}
+
+	host, _, err := net.SplitHostPort(req.RemoteAddr)
+	if err != nil {
+		return strings.TrimSpace(req.RemoteAddr)
+	}
+	return host
 }
