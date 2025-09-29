@@ -13,15 +13,7 @@ FROM alpine AS server
 
 WORKDIR /app
 
-RUN apt-get update \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd --system --uid 10001 --home /app appuser \
-    && mkdir -p /app/data \
-    && chown -R appuser:appuser /app
-
 COPY --from=builder /app/bin/lucipedia /usr/local/bin/lucipedia
-
-USER appuser
 
 EXPOSE 8080
 
