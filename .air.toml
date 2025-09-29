@@ -2,19 +2,22 @@ root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
 
+# include templ files for building
+# https://adrianhesketh.com/2021/05/28/templ-hot-reload-with-air/
+
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "go build -o ./tmp/main cmd/server/main.go"
+  cmd = "templ generate && go build -o ./tmp/main cmd/server/main.go" # generate templ files before building
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
-  exclude_regex = ["_test.go"]
+  exclude_regex = ["_test.go, .*_templ.go"]
   exclude_unchanged = false
   follow_symlink = false
   full_bin = ""
   include_dir = []
-  include_ext = ["go", "tpl", "tmpl", "html"]
+  include_ext = ["go", "tpl", "tmpl", "templ", "html"]
   include_file = []
   kill_delay = "0s"
   log = "build-errors.log"

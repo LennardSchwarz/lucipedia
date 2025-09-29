@@ -29,14 +29,14 @@ func Header(query string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"border-b border-slate-200 bg-white\"><div class=\"mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4\"><div class=\"flex items-center gap-3 text-xl font-semibold text-slate-900\"><span class=\"text-2xl\">📚</span><div class=\"flex flex-col\"><span>Lucipedia</span> <span class=\"text-xs font-normal text-slate-500\">The infinite encyclopedia.</span></div></div><form action=\"/search\" method=\"get\" class=\"flex items-center gap-2\"><label class=\"sr-only\" for=\"search-input\">Search Lucipedia</label> <input class=\"w-64 rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500\" id=\"search-input\" name=\"q\" placeholder=\"Search Lucipedia\" type=\"search\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"border-b border-slate-200 bg-white\"><div class=\"mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4\"><div class=\"flex items-center gap-3 text-xl font-semibold text-slate-900\"><span class=\"text-2xl\">📚</span><div class=\"flex flex-col\"><span>Lucipedia</span> <span class=\"text-xs font-normal text-slate-500\">The infinite encyclopedia.</span></div></div><form action=\"/search\" method=\"get\" class=\"flex items-center gap-2\"><label class=\"sr-only\" for=\"search-input\">Search Lucipedia</label> <input class=\"w-64 rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500\" id=\"search-input\" name=\"q\" placeholder=\"Search Lucipedia\" type=\"search\" maxlength=\"80\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(query)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `navigation.templ`, Line: 21, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/navigation.templ`, Line: 22, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
