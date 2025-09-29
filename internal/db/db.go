@@ -32,8 +32,9 @@ func Open(opts Options) (*gorm.DB, error) {
 		opts.BusyTimeout = 5 * time.Second
 	}
 
-	timeoutMS := opts.BusyTimeout / time.Millisecond
-	dsn := fmt.Sprintf("file:%s?_busy_timeout=%d&_foreign_keys=1&_journal_mode=WAL", opts.Path, timeoutMS)
+	busyTimeout := opts.BusyTimeout
+	busyTimeoutMillis := busyTimeout / time.Millisecond
+	dsn := fmt.Sprintf("file:%s?_busy_timeout=%d&_foreign_keys=1&_journal_mode=WAL", opts.Path, busyTimeoutMillis)
 
 	gormLogger := opts.Logger
 	if gormLogger == nil {
@@ -49,7 +50,7 @@ func Open(opts Options) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := enforcePragmas(db, timeoutMS); err != nil {
+	if err := enforcePragmas(db, busyTimeout); err != nil {
 		return nil, err
 	}
 
@@ -81,12 +82,14 @@ func applyConnectionSettings(db *gorm.DB, opts Options) error {
 	return nil
 }
 
-func enforcePragmas(db *gorm.DB, timeoutMS time.Duration) error {
+func enforcePragmas(db *gorm.DB, busyTimeout time.Duration) error {
+	timeoutMillis := int(busyTimeout / time.Millisecond)
+
 	if err := db.Exec("PRAGMA foreign_keys = ON;").Error; err != nil {
 		return eris.Wrap(err, "enabling foreign keys pragma")
 	}
 
-	if err := db.Exec(fmt.Sprintf("PRAGMA busy_timeout = %d;", int(timeoutMS))).Error; err != nil {
+	if err := db.Exec(fmt.Sprintf("PRAGMA busy_timeout = %d;", timeoutMillis)).Error; err != nil {
 		return eris.Wrap(err, "configuring busy timeout pragma")
 	}
 
