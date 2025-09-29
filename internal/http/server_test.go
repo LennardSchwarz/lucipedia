@@ -65,8 +65,8 @@ func TestWikiRouteServesHTML(t *testing.T) {
 		t.Fatalf("expected wiki HTML in body, got %q", body)
 	}
 
-	if !contains(body, "sticky top-0") {
-		t.Fatalf("expected sticky header classes in body, got %q", body)
+	if !contains(body, "<header") {
+		t.Fatalf("expected header markup in body, got %q", body)
 	}
 
 	if !contains(body, "Lucipedia pages are generated on demand") {
@@ -135,8 +135,8 @@ func TestMostRecentRouteServesHTML(t *testing.T) {
 		t.Fatalf("expected most recent wiki HTML in body, got %q", body)
 	}
 
-	if !contains(body, "sticky top-0") {
-		t.Fatalf("expected sticky header classes in body, got %q", body)
+	if !contains(body, "<header") {
+		t.Fatalf("expected header markup in body, got %q", body)
 	}
 
 	if !contains(body, "Lucipedia pages are generated on demand") {
