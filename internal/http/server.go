@@ -93,6 +93,9 @@ func (s *Server) registerMiddlewares() {
 }
 
 func (s *Server) registerRoutes() {
+	s.mux.HandleFunc("GET /favicon.ico", faviconHandler)
+	s.mux.HandleFunc("HEAD /favicon.ico", faviconHandler)
+
 	s.registerHomeRoute()
 	s.registerRandomRoute()
 	s.registerMostRecentRoute()

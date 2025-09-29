@@ -42,7 +42,7 @@ func BaseLayout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><script src=\"https://cdn.tailwindcss.com?plugins=typography&version=3.4.17\"></script></head><body class=\"h-full font-sans text-slate-800\"><div class=\"flex min-h-screen flex-col bg-white\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><script src=\"https://cdn.tailwindcss.com?plugins=typography&version=3.4.17\"></script><link rel=\"icon\" href=\"/favicon.ico\" type=\"image/x-icon\"></head><body class=\"h-full font-sans text-slate-800\"><div class=\"flex min-h-screen flex-col bg-white\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -150,7 +150,7 @@ func Footer() templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<footer class=\"mt-auto border-t border-slate-200 bg-slate-50/80 py-6\"><div class=\"mx-auto text-center max-w-6xl px-6 text-xs text-slate-500\">Lucipedia pages are generated on demand. Give it a few seconds. Visit the <a href=\"https://github.com/LennardSchwarz\" class=\"underline\">Gitub repository</a>.</div></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<footer class=\"mt-auto border-t border-slate-200 bg-slate-50/80 py-6\"><div class=\"mx-auto text-center max-w-6xl px-6 text-xs text-slate-500\">Lucipedia pages are generated on demand. Give it a few seconds. Made by <a href=\"https://github.com/LennardSchwarz\" class=\"underline\">Lennard</a>.</div></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

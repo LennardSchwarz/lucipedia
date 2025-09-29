@@ -1,0 +1,13 @@
+name: Rebuild prod environment
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  call-deploy:
+    uses: ./.github/workflows/deploy.yml
+    secrets:
+      webhook_url: ${{ secrets.PORTAINER_PROD_APP_WEBHOOK_URL }}
