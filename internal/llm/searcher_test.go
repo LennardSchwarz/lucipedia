@@ -163,7 +163,7 @@ func TestSearcherLive(t *testing.T) {
 	logger.SetOutput(os.Stdout)
 
 	if err := godotenv.Load(); err != nil {
-		eris.Wrap(err, "Failed to load .env file")
+		t.Logf("%v", eris.Wrap(err, "loading .env file"))
 	}
 
 	if os.Getenv("LLM_LIVE_TEST") != "1" {
