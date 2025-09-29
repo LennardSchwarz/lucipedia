@@ -99,7 +99,7 @@ func Sidebar() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<aside class=\"w-full border-b border-slate-200 pb-6 pt-6 text-sm text-slate-700 lg:w-40 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-10 lg:pr-6 lg:pt-10\"><nav class=\"space-y-4\"><div><h2 class=\"mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500\">Navigation</h2><ul class=\"space-y-1\"><li><a class=\"hover:underline\" href=\"/\">Main page</a></li><li><a class=\"hover:underline\" href=\"/random\">Random page</a></li><li><a class=\"hover:underline\" href=\"/most-recent\">Most recent</a></li></ul></div></nav></aside>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<aside class=\"w-full border-b border-slate-200 pb-6 pt-6 text-sm text-slate-700 lg:w-40 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-10 lg:pr-6 lg:pt-10\"><nav class=\"space-y-4\"><div><h2 class=\"mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500\">Navigation</h2><ul class=\"space-y-1 pl-2\"><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/\">Main page</a></li><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/random\">Random page</a></li><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/most-recent\">Most recent</a></li></ul></div></nav></aside>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
