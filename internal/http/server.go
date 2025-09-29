@@ -53,10 +53,6 @@ func NewServer(opts Options) (*Server, error) {
 
 	mux := stdhttp.NewServeMux()
 	config := huma.DefaultConfig("Lucipedia", "1.0.0")
-	config.OpenAPIPath = ""
-	config.DocsPath = ""
-	config.SchemasPath = ""
-	config.Formats = huma.DefaultFormats
 
 	api := humago.New(mux, config)
 
@@ -103,7 +99,6 @@ func (s *Server) registerRoutes() {
 	s.registerHealthRoute()
 }
 
-// now ensures Server implements stdhttp.Handler when needed.
 func (s *Server) ServeHTTP(w stdhttp.ResponseWriter, r *stdhttp.Request) {
 	s.mux.ServeHTTP(w, r)
 }

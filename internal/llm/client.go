@@ -19,7 +19,7 @@ type ClientOptions struct {
 	Logger     *logrus.Logger
 }
 
-// Client wraps the OpenAI SDK services used by Lucipedia.
+// Client wraps the OpenAI SDK services.
 type Client struct {
 	chat    chatCompletionClient
 	logger  *logrus.Logger

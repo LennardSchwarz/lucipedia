@@ -32,10 +32,6 @@ func TestLoadDefaults(t *testing.T) {
 		t.Errorf("expected default log level %q, got %q", defaultLogLevel, cfg.LogLevel)
 	}
 
-	if cfg.ShutdownGrace != defaultShutdownGrace {
-		t.Errorf("expected shutdown grace %s, got %s", defaultShutdownGrace, cfg.ShutdownGrace)
-	}
-
 	if cfg.LLMModels != nil {
 		t.Errorf("expected nil LLMModels, got %v", cfg.LLMModels)
 	}
@@ -149,3 +145,17 @@ func TestLoadInvalidModels(t *testing.T) {
 		t.Fatalf("expected error to mention parsing LLM_MODELS, got %v", err)
 	}
 }
+
+func TestLoadInvalidModelsSyntax(t *testing.T) {
+	t.Setenv("LLM_MODELS", `{"models":noClosingBracket`)
+
+	_, err := Load()
+	if err == nil {
+		t.Fatalf("expected error when models JSON is invalid, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "parsing LLM_MODELS") {
+		t.Fatalf("expected error to mention parsing LLM_MODELS, got %v", err)
+	}
+}
+

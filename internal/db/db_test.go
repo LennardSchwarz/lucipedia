@@ -61,7 +61,7 @@ func TestOpenAppliesPragmasWithDefaultTimeout(t *testing.T) {
 func TestOpenHonoursBusyTimeoutAndConnectionLimits(t *testing.T) {
 	t.Parallel()
 
-	path := filepath.Join(t.TempDir(), "lucipedia_custom.db")
+	path := filepath.Join(t.TempDir(), "lucipedia_custom_test.db")
 	opts := Options{
 		Path:         path,
 		BusyTimeout:  1500 * time.Millisecond,

@@ -76,25 +76,25 @@ func (s *service) GetPage(ctx context.Context, slug string) (string, error) {
 
 	html, backlinks, err := s.generator.Generate(ctx, trimmedSlug)
 	if err != nil {
-		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "generating wiki page")
+		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "llm wiki wiki page generation")
 		return "", eris.Wrapf(err, "generating page: %s", trimmedSlug)
 	}
 
 	html = strings.TrimSpace(html)
 	if html == "" {
 		err := eris.New("generated html is empty")
-		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "validating generated html")
+		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "validating llm generated html")
 		return "", eris.Wrapf(err, "validating generated html for slug %s", trimmedSlug)
 	}
 
 	if err := validateBacklinks(html, backlinks); err != nil {
-		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "validating backlinks")
+		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "validating backlinks during wiki page generation")
 		return "", eris.Wrapf(err, "validating backlinks for slug %s", trimmedSlug)
 	}
 
 	newPage := &Page{Slug: trimmedSlug, HTML: html}
 	if err := s.repo.CreateOrUpdate(ctx, newPage); err != nil {
-		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "persisting generated page")
+		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "persisting generated page to repository")
 		return "", eris.Wrapf(err, "persisting generated page: %s", trimmedSlug)
 	}
 

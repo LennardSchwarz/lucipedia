@@ -26,8 +26,6 @@ const (
 	defaultDBPath        = "./data/lucipedia.db"
 	defaultServerPort    = 8080
 	defaultLogLevel      = "info"
-	defaultEnvironment   = "development"
-	defaultShutdownGrace = 10 * time.Second
 )
 
 // Load reads configuration values from environment variables, applying defaults where necessary.
@@ -39,7 +37,6 @@ func Load() (*Config, error) {
 		LLMAPIKey:     os.Getenv("LLM_API_KEY"),
 		SentryDSN:     os.Getenv("SENTRY_DSN"),
 		Environment:   os.Getenv("ENV"),
-		ShutdownGrace: defaultShutdownGrace,
 	}
 
 	if modelsJSON := os.Getenv("LLM_MODELS"); modelsJSON != "" {
