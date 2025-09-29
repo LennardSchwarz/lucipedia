@@ -2,6 +2,7 @@ package http
 
 import (
 	stdhttp "net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humago"
@@ -22,18 +23,27 @@ type Options struct {
 	Database    *gorm.DB
 	Logger      *logrus.Logger
 	SentryHub   *sentry.Hub
+	RateLimiter RateLimiterSettings
+}
+
+// RateLimiterSettings configures the HTTP rate limiter behaviour.
+type RateLimiterSettings struct {
+	RequestsPerSecond float64
+	Burst             int
+	ClientTTL         time.Duration
 }
 
 // Server wires the HTTP transport layer via Huma and templ components.
 type Server struct {
-	api        huma.API
-	mux        *stdhttp.ServeMux
-	wiki       wiki.Service
-	repository wiki.Repository
-	generator  llm.Generator
-	logger     *logrus.Logger
-	sentry     *sentry.Hub
-	db         *gorm.DB
+	api         huma.API
+	mux         *stdhttp.ServeMux
+	wiki        wiki.Service
+	repository  wiki.Repository
+	generator   llm.Generator
+	logger      *logrus.Logger
+	sentry      *sentry.Hub
+	db          *gorm.DB
+	rateLimiter *RateLimiter
 }
 
 // NewServer constructs the HTTP server.
@@ -67,6 +77,19 @@ func NewServer(opts Options) (*Server, error) {
 		db:         opts.Database,
 	}
 
+	settings := opts.RateLimiter
+	if settings.Burst <= 0 {
+		return nil, eris.New("rate limiter burst must be greater than zero")
+	}
+	if settings.RequestsPerSecond <= 0 {
+		return nil, eris.New("rate limiter requests per second must be greater than zero")
+	}
+	if settings.ClientTTL <= 0 {
+		return nil, eris.New("rate limiter client TTL must be greater than zero")
+	}
+
+	srv.rateLimiter = NewRateLimiter(settings.Burst, settings.RequestsPerSecond, settings.ClientTTL)
+
 	srv.registerMiddlewares()
 	srv.registerRoutes()
 
@@ -88,6 +111,7 @@ func (s *Server) registerMiddlewares() {
 		s.sentryMiddleware(),
 		s.recoveryMiddleware(),
 		s.requestIDMiddleware(),
+		s.rateLimitMiddleware(),
 		s.loggingMiddleware(),
 	)
 }

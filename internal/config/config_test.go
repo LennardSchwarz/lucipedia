@@ -43,6 +43,18 @@ func TestLoadDefaults(t *testing.T) {
 	if cfg.SentryDSN != "" {
 		t.Errorf("expected empty Sentry DSN, got %q", cfg.SentryDSN)
 	}
+
+	if cfg.RateLimit.Burst != defaultRateLimitBurst {
+		t.Errorf("expected rate limit burst %d, got %d", defaultRateLimitBurst, cfg.RateLimit.Burst)
+	}
+
+	if cfg.RateLimit.RequestsPerSecond != defaultRateLimitRequestsPerSecond {
+		t.Errorf("expected rate limit RPS %.1f, got %.1f", defaultRateLimitRequestsPerSecond, cfg.RateLimit.RequestsPerSecond)
+	}
+
+	if cfg.RateLimit.ClientTTL != defaultRateLimitClientTTL {
+		t.Errorf("expected rate limit client TTL %s, got %s", defaultRateLimitClientTTL, cfg.RateLimit.ClientTTL)
+	}
 }
 
 func TestLoadWithExplicitValues(t *testing.T) {
@@ -158,4 +170,3 @@ func TestLoadInvalidModelsSyntax(t *testing.T) {
 		t.Fatalf("expected error to mention parsing LLM_MODELS, got %v", err)
 	}
 }
-
