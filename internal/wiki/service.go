@@ -15,6 +15,7 @@ import (
 type Service interface {
 	GetPage(ctx context.Context, slug string) (string, error)
 	Search(ctx context.Context, query string, limit int) ([]SearchResult, error)
+	RandomSlug(ctx context.Context) (string, error)
 }
 
 type service struct {
@@ -26,6 +27,9 @@ type service struct {
 }
 
 var _ Service = (*service)(nil)
+
+// ErrNoPages indicates there are no persisted wiki pages to select from.
+var ErrNoPages = eris.New("no wiki pages available")
 
 const (
 	defaultSearchLimit           = 10
@@ -131,6 +135,29 @@ func (s *service) Search(ctx context.Context, query string, limit int) ([]Search
 	}
 
 	return results, nil
+}
+
+func (s *service) RandomSlug(ctx context.Context) (string, error) {
+	page, err := s.repo.RandomPage(ctx)
+	if err != nil {
+		s.recordError(nil, err, "selecting random wiki page")
+		return "", eris.Wrap(err, "selecting random wiki page")
+	}
+
+	if page == nil {
+		wrapped := eris.Wrap(ErrNoPages, "selecting random wiki page")
+		s.recordError(nil, wrapped, "selecting random wiki page")
+		return "", wrapped
+	}
+
+	slug := strings.TrimSpace(page.Slug)
+	if slug == "" {
+		err := eris.New("random page slug is empty")
+		s.recordError(logrus.Fields{"page_id": page.ID}, err, "validating random wiki page")
+		return "", eris.Wrap(err, "validating random wiki page")
+	}
+
+	return slug, nil
 }
 
 func (s *service) recordError(fields logrus.Fields, err error, message string) {

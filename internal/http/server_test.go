@@ -84,6 +84,50 @@ func TestWikiRouteReturns404OnUnavailablePage(t *testing.T) {
 	}
 }
 
+func TestRandomRouteRedirectsToWikiSlug(t *testing.T) {
+	t.Parallel()
+
+	service := &stubWikiService{randomSlug: "alpha"}
+	srv := newTestServer(t, service, &stubRepository{count: 1})
+
+	req := httptest.NewRequest("GET", "/random/", nil)
+	rec := httptest.NewRecorder()
+
+	srv.ServeHTTP(rec, req)
+
+	if rec.Code != 302 {
+		t.Fatalf("expected status 302, got %d", rec.Code)
+	}
+
+	if location := rec.Header().Get("Location"); location != "/wiki/alpha" {
+		t.Fatalf("expected redirect to /wiki/alpha, got %q", location)
+	}
+}
+
+func TestRandomRouteHandlesMissingPages(t *testing.T) {
+	t.Parallel()
+
+	service := &stubWikiService{randomErr: wiki.ErrNoPages}
+	srv := newTestServer(t, service, &stubRepository{count: 0})
+
+	req := httptest.NewRequest("GET", "/random/", nil)
+	rec := httptest.NewRecorder()
+
+	srv.ServeHTTP(rec, req)
+
+	if rec.Code != 404 {
+		t.Fatalf("expected status 404, got %d", rec.Code)
+	}
+
+	if ct := rec.Header().Get("Content-Type"); ct != htmlContentType {
+		t.Fatalf("expected content type %q, got %q", htmlContentType, ct)
+	}
+
+	if !contains(rec.Body.String(), "Follow a link to generate the first article") {
+		t.Fatalf("expected helpful message in body, got %q", rec.Body.String())
+	}
+}
+
 func TestSearchRouteRendersResults(t *testing.T) {
 	t.Parallel()
 
@@ -179,6 +223,8 @@ type stubWikiService struct {
 	pageErr       error
 	searchResults []wiki.SearchResult
 	searchErr     error
+	randomSlug    string
+	randomErr     error
 }
 
 func (s *stubWikiService) GetPage(_ context.Context, _ string) (string, error) {
@@ -186,6 +232,13 @@ func (s *stubWikiService) GetPage(_ context.Context, _ string) (string, error) {
 		return "", s.pageErr
 	}
 	return s.pageHTML, nil
+}
+
+func (s *stubWikiService) RandomSlug(_ context.Context) (string, error) {
+	if s.randomErr != nil {
+		return "", s.randomErr
+	}
+	return s.randomSlug, nil
 }
 
 func (s *stubWikiService) Search(_ context.Context, _ string, _ int) ([]wiki.SearchResult, error) {
@@ -208,6 +261,10 @@ func (s *stubRepository) CreateOrUpdate(_ context.Context, _ *wiki.Page) error {
 }
 
 func (s *stubRepository) ListPages(_ context.Context) ([]wiki.Page, error) {
+	return nil, nil
+}
+
+func (s *stubRepository) RandomPage(_ context.Context) (*wiki.Page, error) {
 	return nil, nil
 }
 

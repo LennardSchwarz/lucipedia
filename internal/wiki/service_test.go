@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
 
 	"lucipedia/app/internal/db"
@@ -156,6 +157,56 @@ func TestServiceSearchReturnsLLMResults(t *testing.T) {
 
 	if stub.capturedLimit != 2 {
 		t.Fatalf("expected limit to be honoured, got %d", stub.capturedLimit)
+	}
+}
+
+func TestServiceRandomSlugReturnsErrorWhenEmpty(t *testing.T) {
+	t.Parallel()
+
+	repo, generator, searcher, cleanup := setupServiceDependencies(t, "random-empty.db")
+	defer cleanup()
+
+	service, err := NewService(repo, generator, searcher, silentLogger(), nil)
+	if err != nil {
+		t.Fatalf("NewService returned error: %v", err)
+	}
+
+	_, err = service.RandomSlug(context.Background())
+	if err == nil {
+		t.Fatalf("expected error when no pages exist")
+	}
+
+	if !eris.Is(err, ErrNoPages) {
+		t.Fatalf("expected ErrNoPages, got %v", err)
+	}
+}
+
+func TestServiceRandomSlugReturnsPersistedSlug(t *testing.T) {
+	t.Parallel()
+
+	repo, generator, searcher, cleanup := setupServiceDependencies(t, "random-existing.db")
+	defer cleanup()
+
+	ctx := context.Background()
+	for _, slug := range []string{"alpha", "beta"} {
+		page := &Page{Slug: slug, HTML: "<p>" + slug + "</p>"}
+		if err := repo.CreateOrUpdate(ctx, page); err != nil {
+			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		}
+	}
+
+	service, err := NewService(repo, generator, searcher, silentLogger(), nil)
+	if err != nil {
+		t.Fatalf("NewService returned error: %v", err)
+	}
+
+	slug, err := service.RandomSlug(ctx)
+	if err != nil {
+		t.Fatalf("RandomSlug returned error: %v", err)
+	}
+
+	if slug != "alpha" && slug != "beta" {
+		t.Fatalf("unexpected slug %q", slug)
 	}
 }
 

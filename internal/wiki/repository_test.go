@@ -119,6 +119,55 @@ func TestCountPagesReturnsTotal(t *testing.T) {
 	}
 }
 
+func TestRandomPageReturnsNilWhenEmpty(t *testing.T) {
+	t.Parallel()
+
+	repo := setupRepository(t)
+
+	page, err := repo.RandomPage(context.Background())
+	if err != nil {
+		t.Fatalf("RandomPage returned error: %v", err)
+	}
+
+	if page != nil {
+		t.Fatalf("expected nil page when database is empty, got %#v", page)
+	}
+}
+
+func TestRandomPageReturnsExistingEntry(t *testing.T) {
+	t.Parallel()
+
+	repo := setupRepository(t)
+	ctx := context.Background()
+
+	slugs := []string{"alpha", "beta", "gamma"}
+	for _, slug := range slugs {
+		page := &Page{Slug: slug, HTML: "<p>" + slug + "</p>"}
+		if err := repo.CreateOrUpdate(ctx, page); err != nil {
+			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		}
+	}
+
+	page, err := repo.RandomPage(ctx)
+	if err != nil {
+		t.Fatalf("RandomPage returned error: %v", err)
+	}
+
+	if page == nil {
+		t.Fatalf("expected RandomPage to return a page")
+	}
+
+	valid := map[string]struct{}{
+		"alpha": {},
+		"beta":  {},
+		"gamma": {},
+	}
+
+	if _, ok := valid[page.Slug]; !ok {
+		t.Fatalf("unexpected slug %q returned", page.Slug)
+	}
+}
+
 func setupRepository(t *testing.T) *GormRepository {
 	t.Helper()
 

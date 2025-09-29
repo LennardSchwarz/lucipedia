@@ -14,6 +14,7 @@ import (
 
 	"lucipedia/app/internal/db"
 	"lucipedia/app/internal/http/templates"
+	"lucipedia/app/internal/wiki"
 )
 
 const (
@@ -25,6 +26,7 @@ const (
 type htmlResponse struct {
 	Status      int
 	ContentType string `header:"Content-Type"`
+	Location    string `header:"Location"`
 	Body        []byte
 }
 
@@ -47,6 +49,15 @@ type healthResponse struct {
 
 func (s *Server) registerHomeRoute() {
 	huma.Get(s.api, "/", s.homeHandler, htmlOperation("Lucipedia home", stdhttp.StatusInternalServerError))
+}
+
+func (s *Server) registerRandomRoute() {
+	huma.Get(s.api, "/random/", s.randomHandler, htmlOperation(
+		"Redirect to random page",
+		stdhttp.StatusFound,
+		stdhttp.StatusNotFound,
+		stdhttp.StatusInternalServerError,
+	))
 }
 
 func (s *Server) registerWikiRoute() {
@@ -101,6 +112,27 @@ func (s *Server) homeHandler(ctx context.Context, _ *struct{}) (*htmlResponse, e
 	}
 
 	return newHTMLResponse(stdhttp.StatusOK, body), nil
+}
+
+func (s *Server) randomHandler(ctx context.Context, _ *struct{}) (*htmlResponse, error) {
+	slug, err := s.wiki.RandomSlug(ctx)
+	if err != nil {
+		status := stdhttp.StatusInternalServerError
+		message := errorFallbackMessage
+
+		if eris.Is(err, wiki.ErrNoPages) {
+			status = stdhttp.StatusNotFound
+			message = "Lucipedia doesn't have any pages yet. Follow a link to generate the first article."
+		}
+
+		s.recordError(ctx, err, "selecting random page", nil)
+		return s.renderErrorResponse(ctx, status, message)
+	}
+
+	response := newHTMLResponse(stdhttp.StatusFound, nil)
+	response.Location = "/wiki/" + slug
+
+	return response, nil
 }
 
 func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*htmlResponse, error) {

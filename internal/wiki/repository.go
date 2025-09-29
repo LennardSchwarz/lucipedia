@@ -15,6 +15,7 @@ type Repository interface {
 	CreateOrUpdate(ctx context.Context, page *Page) error
 	ListPages(ctx context.Context) ([]Page, error)
 	CountPages(ctx context.Context) (int64, error)
+	RandomPage(ctx context.Context) (*Page, error)
 }
 
 // GormRepository persists pages using a Gorm database connection.
@@ -96,6 +97,21 @@ func (r *GormRepository) CountPages(ctx context.Context) (int64, error) {
 	}
 
 	return count, nil
+}
+
+// RandomPage returns a single random page or nil when the table is empty.
+func (r *GormRepository) RandomPage(ctx context.Context) (*Page, error) {
+	var page Page
+
+	if err := r.db.WithContext(ctx).Order("RANDOM()").First(&page).Error; err != nil {
+		if eris.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		r.logError(nil, err, "selecting random page")
+		return nil, eris.Wrap(err, "selecting random page")
+	}
+
+	return &page, nil
 }
 
 func (r *GormRepository) logError(fields logrus.Fields, err error, message string) {

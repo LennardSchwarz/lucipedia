@@ -94,6 +94,7 @@ func (s *Server) registerMiddlewares() {
 
 func (s *Server) registerRoutes() {
 	s.registerHomeRoute()
+	s.registerRandomRoute()
 	s.registerWikiRoute()
 	s.registerSearchRoute()
 	s.registerHealthRoute()
