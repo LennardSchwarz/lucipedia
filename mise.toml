@@ -1,0 +1,4 @@
+[tools]
+golang = "1.24.7"
+#templ = { source = "brew", formula = "templ", version = "0.3.943" }
+#air = { source = "brew", formula = "air", version = "0.7.1"}

@@ -1,0 +1,40 @@
+package templates
+
+templ SearchPage(data SearchPageData) {
+    @BaseLayout(data.Title) {
+        @Header(data.Query)
+        <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-10 lg:flex-row lg:gap-12">
+            @Sidebar()
+            <main class="flex-1">
+                <article class="max-w-2xl">
+                    <header class="border-b border-slate-200 pb-4">
+                        <h1 class="text-3xl font-bold text-slate-900">Search</h1>
+                        if data.Query != "" {
+                            <p class="mt-2 text-sm text-slate-500">Results for "{ data.Query }"</p>
+                        } else {
+                            <p class="mt-2 text-sm text-slate-500">Search the Lucipedia archives.</p>
+                        }
+                    </header>
+                    <section class="mt-6 space-y-4 text-base leading-7 text-slate-700">
+                        if data.ErrorMessage != "" {
+                            <div class="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                { data.ErrorMessage }
+                            </div>
+                        }
+                        if len(data.Results) == 0 {
+                            <p class="text-slate-600">No pages found yet—try another query or explore from the main page.</p>
+                        } else {
+                            <ul class="space-y-3">
+                                for _, result := range data.Results {
+                                    <li>
+                                        <a class="text-indigo-600 hover:underline" href={ result.URL }>{ result.Title }</a>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </section>
+                </article>
+            </main>
+        </div>
+    }
+}
