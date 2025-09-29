@@ -58,8 +58,17 @@ func TestWikiRouteServesHTML(t *testing.T) {
 		t.Fatalf("expected status 200, got %d", rec.Code)
 	}
 
-	if rec.Body.String() != "<p>Alpha</p>" {
-		t.Fatalf("expected wiki HTML in body, got %q", rec.Body.String())
+	body := rec.Body.String()
+	if !contains(body, "<p>Alpha</p>") {
+		t.Fatalf("expected wiki HTML in body, got %q", body)
+	}
+
+	if !contains(body, "sticky top-0") {
+		t.Fatalf("expected sticky header classes in body, got %q", body)
+	}
+
+	if !contains(body, "Lucipedia pages are generated on demand") {
+		t.Fatalf("expected footer note in body, got %q", body)
 	}
 }
 
@@ -90,7 +99,7 @@ func TestRandomRouteRedirectsToWikiSlug(t *testing.T) {
 	service := &stubWikiService{randomSlug: "alpha"}
 	srv := newTestServer(t, service, &stubRepository{count: 1})
 
-	req := httptest.NewRequest("GET", "/random/", nil)
+	req := httptest.NewRequest("GET", "/random", nil)
 	rec := httptest.NewRecorder()
 
 	srv.ServeHTTP(rec, req)
@@ -150,7 +159,7 @@ func TestRandomRouteHandlesMissingPages(t *testing.T) {
 	service := &stubWikiService{randomErr: wiki.ErrNoPages}
 	srv := newTestServer(t, service, &stubRepository{count: 0})
 
-	req := httptest.NewRequest("GET", "/random/", nil)
+	req := httptest.NewRequest("GET", "/random", nil)
 	rec := httptest.NewRecorder()
 
 	srv.ServeHTTP(rec, req)

@@ -21,6 +21,7 @@ const (
 	htmlContentType      = "text/html; charset=utf-8"
 	searchResultsLimit   = 10
 	errorFallbackMessage = "We couldn't process your request right now."
+	wikiFooterNote       = "Lucipedia pages are generated on demand. Internal links create new articles the first time they are visited."
 )
 
 type htmlResponse struct {
@@ -52,7 +53,7 @@ func (s *Server) registerHomeRoute() {
 }
 
 func (s *Server) registerRandomRoute() {
-	huma.Get(s.api, "/random/", s.randomHandler, htmlOperation(
+	huma.Get(s.api, "/random", s.randomHandler, htmlOperation(
 		"Redirect to random page",
 		stdhttp.StatusFound,
 		stdhttp.StatusNotFound,
@@ -110,7 +111,7 @@ func (s *Server) homeHandler(ctx context.Context, _ *struct{}) (*htmlResponse, e
 			"Every article is dreamt up by an AI historian. Treat the knowledge as inspiration, not verified fact.",
 		},
 		BuilderAttribution: "Built with curiosity for wanderers of emergent knowledge.",
-		FooterNote:         "Lucipedia pages are generated on demand. Internal links create new articles the first time they are visited.",
+		FooterNote:         wikiFooterNote,
 	}
 
 	body, err := renderComponent(ctx, templates.HomePage(data))
@@ -170,7 +171,26 @@ func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*htmlRespon
 		return s.renderErrorResponse(ctx, status, message)
 	}
 
-	return newHTMLResponse(stdhttp.StatusOK, []byte(html)), nil
+	title := "Lucipedia"
+	if slug != "" {
+		title = fmt.Sprintf("%s • Lucipedia", slug)
+	}
+
+	data := templates.WikiPageData{
+		Title:      title,
+		Query:      "",
+		Slug:       slug,
+		HTML:       html,
+		FooterNote: wikiFooterNote,
+	}
+
+	body, err := renderComponent(ctx, templates.WikiPage(data))
+	if err != nil {
+		s.recordError(ctx, err, "rendering wiki page", logrus.Fields{"slug": slug})
+		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, errorFallbackMessage)
+	}
+
+	return newHTMLResponse(stdhttp.StatusOK, body), nil
 }
 
 func (s *Server) searchHandler(ctx context.Context, input *searchInput) (*htmlResponse, error) {

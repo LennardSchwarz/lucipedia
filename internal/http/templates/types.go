@@ -31,3 +31,12 @@ type ErrorPageData struct {
 	StatusLabel string
 	Message     string
 }
+
+// WikiPageData contains the dynamic values for a generated wiki entry.
+type WikiPageData struct {
+	Title      string
+	Query      string
+	Slug       string
+	HTML       string
+	FooterNote string
+}
