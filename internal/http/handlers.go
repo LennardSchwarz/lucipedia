@@ -98,11 +98,13 @@ func (s *Server) homeHandler(ctx context.Context, _ *struct{}) (*htmlResponse, e
 		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, "We couldn't load Lucipedia right now.")
 	}
 
+	formattedCount := formatCount(count)
 	data := templates.HomePageData{
-		FormattedPageCount: formatCount(count),
+		FormattedPageCount: formattedCount,
 	}
 
-	body, err := renderComponent(ctx, templates.HomePage(data))
+	renderCtx := templates.WithPageCount(ctx, formattedCount)
+	body, err := renderComponent(renderCtx, templates.HomePage(data))
 	if err != nil {
 		s.recordError(ctx, err, "rendering home page", nil)
 		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, "We couldn't render the homepage.")
@@ -171,7 +173,8 @@ func (s *Server) mostRecentHandler(ctx context.Context, _ *struct{}) (*htmlRespo
 		HTML:  html,
 	}
 
-	body, err := renderComponent(ctx, templates.WikiPage(data))
+	renderCtx := s.contextWithPageCount(ctx, logrus.Fields{"slug": slug})
+	body, err := renderComponent(renderCtx, templates.WikiPage(data))
 	if err != nil {
 		s.recordError(ctx, err, "rendering most recent page", logrus.Fields{"slug": slug})
 		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, errorFallbackMessage)
@@ -199,7 +202,8 @@ func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*htmlRespon
 		HTML:  html,
 	}
 
-	body, err := renderComponent(ctx, templates.WikiPage(data))
+	renderCtx := s.contextWithPageCount(ctx, logrus.Fields{"slug": slug})
+	body, err := renderComponent(renderCtx, templates.WikiPage(data))
 	if err != nil {
 		s.recordError(ctx, err, "rendering wiki page", logrus.Fields{"slug": slug})
 		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, errorFallbackMessage)
@@ -237,7 +241,8 @@ func (s *Server) searchHandler(ctx context.Context, input *searchInput) (*htmlRe
 		}
 	}
 
-	body, err := renderComponent(ctx, templates.SearchPage(data))
+	renderCtx := s.contextWithPageCount(ctx, logrus.Fields{"query": query})
+	body, err := renderComponent(renderCtx, templates.SearchPage(data))
 	if err != nil {
 		s.recordError(ctx, err, "rendering search page", logrus.Fields{"query": query})
 		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, "We couldn't render search results right now.")
@@ -312,6 +317,18 @@ func htmlOperation(summary string, statuses ...int) func(op *huma.Operation) {
 	}
 }
 
+func (s *Server) contextWithPageCount(ctx context.Context, fields logrus.Fields) context.Context {
+	if s == nil || s.repository == nil {
+		return ctx
+	}
+	count, err := s.repository.CountPages(ctx)
+	if err != nil {
+		s.recordError(ctx, err, "counting pages for layout", fields)
+		return ctx
+	}
+	return templates.WithPageCount(ctx, formatCount(count))
+}
+
 func classifyError(err error) (int, string) {
 	if err == nil {
 		return stdhttp.StatusInternalServerError, errorFallbackMessage
@@ -339,7 +356,8 @@ func (s *Server) renderErrorResponse(ctx context.Context, status int, message st
 		Message:     message,
 	})
 
-	body, err := renderComponent(ctx, template)
+	renderCtx := s.contextWithPageCount(ctx, logrus.Fields{"status": status})
+	body, err := renderComponent(renderCtx, template)
 	if err != nil {
 		s.recordError(ctx, err, "rendering error page", logrus.Fields{"status": status})
 		fallback := []byte(fmt.Sprintf("<html><body><h1>%s</h1><p>%s</p></body></html>", label, message))

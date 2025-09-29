@@ -29,7 +29,7 @@ func Header(query string, pageCount string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur\"><div class=\"mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between\"><a href=\"/\" aria-label=\"Lucipedia home\" class=\"flex items-center gap-3 text-xl font-semibold text-slate-900\"><span class=\"text-2xl\">📚</span><div class=\"flex flex-col\"><span>Lucipedia</span> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur\"><div class=\"mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between\"><a href=\"/\" aria-label=\"Lucipedia home\" class=\"flex items-center gap-3 text-xl font-semibold text-slate-900\"><span class=\"text-2xl\">📚</span><div class=\"flex flex-col\"><span>Lucipedia</span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -99,7 +99,7 @@ func Sidebar() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<aside class=\"w-full border-b border-slate-200 pb-6 pt-6 text-sm text-slate-700 lg:w-40 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-10 lg:pr-6 lg:pt-10\"><nav class=\"space-y-4\"><div><h2 class=\"mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500\">Navigation</h2><ul class=\"space-y-1 pl-2\"><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/\">Main page</a></li><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/random\">Random page</a></li><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/most-recent\">Most recent</a></li></ul></div></nav></aside>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<aside class=\"w-full border-b border-slate-200 pb-6 pt-6 text-sm text-slate-700 lg:w-40 lg:shrink-0\"><nav class=\"space-y-4\"><div><h2 class=\"mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500\">Navigation</h2><ul class=\"space-y-1 pl-2\"><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/\">Main page</a></li><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/random\">Random page</a></li><li><a class=\"text-blue-600 hover:text-blue-700 hover:underline\" href=\"/most-recent\">Most recent</a></li></ul></div></nav></aside>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

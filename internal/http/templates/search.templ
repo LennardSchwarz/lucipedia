@@ -1,7 +1,7 @@
 package templates
 
 templ SearchPage(data SearchPageData) {
-    @AppLayout("Search • Lucipedia", data.Query, "") {
+    @AppLayout("Search • Lucipedia", data.Query) {
         <article class="max-w-2xl">
             <header class="border-b border-slate-200 pb-4">
                 <h1 class="text-3xl font-bold text-slate-900">Search</h1>
@@ -32,3 +32,4 @@ templ SearchPage(data SearchPageData) {
         </article>
     }
 }
+
