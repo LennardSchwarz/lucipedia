@@ -10,8 +10,7 @@ import (
 	"github.com/openai/openai-go/v2/shared"
 	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
-
-	
+	"golang.org/x/net/html"
 )
 
 // Generator defines the behaviour for producing Lucipedia page content.
@@ -119,8 +118,15 @@ func (g *openRouterGenerator) Generate(ctx context.Context, slug string) (string
 		return "", nil, err
 	}
 
-	backlinks := g.extractBacklinks(html)
-	return html, backlinks, nil
+	cleanedHTML, err := cleanGeneratedHTML(html)
+	if err != nil {
+		err := eris.Wrap(err, "cleaning llm html response")
+		g.logError(logrus.Fields{"slug": trimmedSlug}, err, "invalid llm response")
+		return "", nil, err
+	}
+
+	backlinks := g.extractBacklinks(cleanedHTML)
+	return cleanedHTML, backlinks, nil
 }
 
 func (g *openRouterGenerator) logError(fields logrus.Fields, err error, message string) {
@@ -162,4 +168,133 @@ func (g *openRouterGenerator) extractBacklinks(html string) []string {
 	}
 
 	return backlinks
+}
+
+func cleanGeneratedHTML(content string) (string, error) {
+	trimmed := strings.TrimSpace(content)
+	trimmed = stripCodeFence(trimmed)
+	if trimmed == "" {
+		return "", eris.New("html content is empty")
+	}
+
+	doc, err := html.Parse(strings.NewReader(trimmed))
+	if err != nil {
+		return "", eris.Wrap(err, "parsing html content")
+	}
+
+	root := &html.Node{Type: html.ElementNode, Data: "div"}
+	appendSanitizedChildren(root, doc)
+
+	if root.FirstChild == nil {
+		return "", eris.New("html content empty after cleaning")
+	}
+
+	contentRoot := root
+	if div := singleDivChild(root); div != nil {
+		div.Parent = nil
+		contentRoot = div
+	}
+
+	var builder strings.Builder
+	if err := html.Render(&builder, contentRoot); err != nil {
+		return "", eris.Wrap(err, "rendering cleaned html")
+	}
+
+	return builder.String(), nil
+}
+
+func stripCodeFence(content string) string {
+	if !strings.HasPrefix(content, "```") {
+		return content
+	}
+
+	body := content[3:]
+	newline := strings.IndexByte(body, '\n')
+	if newline == -1 {
+		return content
+	}
+	body = body[newline+1:]
+
+	trimmedBody := strings.TrimRight(body, " \t\r\n")
+	if !strings.HasSuffix(trimmedBody, "```") {
+		return content
+	}
+
+	trimmedBody = strings.TrimRight(trimmedBody[:len(trimmedBody)-3], " \t\r\n")
+	return strings.TrimSpace(trimmedBody)
+}
+
+func appendSanitizedChildren(dst, src *html.Node) {
+	if src == nil {
+		return
+	}
+
+	skipWhitespace := src.Type == html.DocumentNode || (src.Type == html.ElementNode && (strings.EqualFold(src.Data, "html") || strings.EqualFold(src.Data, "body")))
+
+	for child := src.FirstChild; child != nil; child = child.NextSibling {
+		switch child.Type {
+		case html.TextNode:
+			if skipWhitespace && isWhitespaceTextNode(child) {
+				continue
+			}
+			dst.AppendChild(&html.Node{Type: html.TextNode, Data: child.Data})
+		case html.ElementNode:
+			name := strings.ToLower(child.Data)
+			switch name {
+			case "head":
+				continue
+			case "html", "body":
+				appendSanitizedChildren(dst, child)
+				continue
+			}
+
+			newName := child.Data
+			if name == "header" {
+				newName = "div"
+			}
+
+			replacement := &html.Node{Type: html.ElementNode, Data: newName, Attr: cloneAttributes(child.Attr)}
+			appendSanitizedChildren(replacement, child)
+			dst.AppendChild(replacement)
+		case html.CommentNode, html.DoctypeNode:
+			continue
+		default:
+			appendSanitizedChildren(dst, child)
+		}
+	}
+}
+
+func cloneAttributes(attrs []html.Attribute) []html.Attribute {
+	if len(attrs) == 0 {
+		return nil
+	}
+
+	cloned := make([]html.Attribute, len(attrs))
+	copy(cloned, attrs)
+	return cloned
+}
+
+func singleDivChild(node *html.Node) *html.Node {
+	if node == nil {
+		return nil
+	}
+
+	first := node.FirstChild
+	if first == nil || first.NextSibling != nil {
+		return nil
+	}
+
+	if first.Type != html.ElementNode || !strings.EqualFold(first.Data, "div") {
+		return nil
+	}
+
+	return first
+}
+
+func isWhitespaceTextNode(node *html.Node) bool {
+	if node == nil || node.Type != html.TextNode {
+		return false
+	}
+
+	return strings.TrimSpace(node.Data) == ""
 }

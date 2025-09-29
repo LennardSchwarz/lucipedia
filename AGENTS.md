@@ -25,7 +25,7 @@ The database has a single table called "pages", which stores a single page entry
 
 When the server gets a "wiki/some-slug" request, it looks up "some-slug" in the database. If it exists, it serves the page directly; if not, it generates the page from a LLM and saves it to the database before serving it.
 
-Each entry is valid HTML with lots of backlinks to "wiki/some-other-slug" entries that the user can explore.
+Each entry is valid HTML div with lots of backlinks to "wiki/some-other-slug" entries that the user can explore.
 
 The domain layer also exposes a search functionality.
 

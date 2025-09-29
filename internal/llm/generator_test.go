@@ -50,7 +50,7 @@ func TestGeneratorProducesHTMLAndBacklinks(t *testing.T) {
 					Refusal: []openai.ChatCompletionTokenLogprob{},
 				},
 				Message: openai.ChatCompletionMessage{
-					Content: "\n<p>Example about <a href=\"/wiki/alpha\">Alpha</a> and <a href=\"/wiki/beta\">Beta</a>.</p>\n<p>Another link to <a href=\"/wiki/alpha\">Alpha</a>.</p>\n",
+					Content: "<div>\n<p>Example about <a href=\"/wiki/alpha\">Alpha</a> and <a href=\"/wiki/beta\">Beta</a>.</p>\n<p>Another link to <a href=\"/wiki/alpha\">Alpha</a>.</p>\n</div>",
 					Refusal: "",
 					Role:    constant.ValueOf[constant.Assistant](),
 				},
@@ -74,7 +74,7 @@ func TestGeneratorProducesHTMLAndBacklinks(t *testing.T) {
 		t.Fatalf("Generate returned error: %v", err)
 	}
 
-	expectedHTML := "<p>Example about <a href=\"/wiki/alpha\">Alpha</a> and <a href=\"/wiki/beta\">Beta</a>.</p>\n<p>Another link to <a href=\"/wiki/alpha\">Alpha</a>.</p>"
+	expectedHTML := "<div>\n<p>Example about <a href=\"/wiki/alpha\">Alpha</a> and <a href=\"/wiki/beta\">Beta</a>.</p>\n<p>Another link to <a href=\"/wiki/alpha\">Alpha</a>.</p>\n</div>"
 	if html != expectedHTML {
 		t.Fatalf("expected html %q, got %q", expectedHTML, html)
 	}
@@ -100,6 +100,59 @@ func TestGeneratorProducesHTMLAndBacklinks(t *testing.T) {
 
 	if chat.lastParams.ResponseFormat.OfJSONSchema != nil {
 		t.Fatalf("expected response format to be unset")
+	}
+}
+
+func TestCleanGeneratedHTMLConvertsDocumentToDiv(t *testing.T) {
+	t.Parallel()
+
+	input := `<html><body><header class="hero"><h1>Title</h1></header><main><p>Body</p></main></body></html>`
+	cleaned, err := cleanGeneratedHTML(input)
+	if err != nil {
+		t.Fatalf("cleanGeneratedHTML returned error: %v", err)
+	}
+
+	const expected = `<div><div class="hero"><h1>Title</h1></div><main><p>Body</p></main></div>`
+	if cleaned != expected {
+		t.Fatalf("expected cleaned html %q, got %q", expected, cleaned)
+	}
+}
+
+func TestCleanGeneratedHTMLPreservesInlineWhitespace(t *testing.T) {
+	t.Parallel()
+
+	input := `<body><p><span>Alpha</span> <span>Beta</span></p></body>`
+	cleaned, err := cleanGeneratedHTML(input)
+	if err != nil {
+		t.Fatalf("cleanGeneratedHTML returned error: %v", err)
+	}
+
+	const expected = `<div><p><span>Alpha</span> <span>Beta</span></p></div>`
+	if cleaned != expected {
+		t.Fatalf("expected inline whitespace preserved, got %q", cleaned)
+	}
+}
+
+func TestCleanGeneratedHTMLStripsCodeFence(t *testing.T) {
+	t.Parallel()
+
+	input := "```html\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Paris - Lucipedia</title>\n</head>\n<body>\n    <h1>Paris</h1>\n    <p><strong>Paris</strong> is the capital and most populous city of <a href=\"/wiki/France\">France</a>, with an estimated population of 2.1 million people in the city proper. Since the 17th century, Paris has been one of the world's major centers of finance, diplomacy, commerce, fashion, gastronomy, science, and the arts. The <a href=\"/wiki/Paris\">City of Light</a> is a global center for art, fashion, gastronomy, and culture, and is one of the world's major global cities.</p>\n\n    <h2>History</h2>\n    <p>Paris has a rich history dating back to ancient times. Originally a Celtic settlement, it was later conquered by the Romans and named <em>Lutetia</em>. Over the centuries, Paris grew into a major political and cultural center, playing a pivotal role in European history. The city was the site of many significant events, including the <a href=\"/wiki/French_Revolution\">French Revolution</a> and both World Wars.</p>\n\n    <h2>Landmarks</h2>\n    <p>Paris is home to some of the world's most iconic landmarks, including the <a href=\"/wiki/Eiffel_Tower\">Eiffel Tower</a>, the <a href=\"/wiki/Louvre\">Louvre Museum</a>, and <a href=\"/wiki/Notre-Dame_Cathedral\">Notre-Dame Cathedral</a>. The city's architecture is a blend of historic and modern styles, with notable districts like the <a href=\"/wiki/Le_Marais\">Le Marais</a> and the <a href=\"/wiki/Champs-Élysées\">Champs-Élysées</a>.</p>\n\n    <h2>Culture</h2>\n    <p>Paris is renowned for its cultural institutions, including the <a href=\"/wiki/Opéra_Garnier\">Opéra Garnier</a> and the <a href=\"/wiki/Palace_of_Versailles\">Palace of Versailles</a>. The city is also famous for its cuisine, fashion houses, and vibrant art scene. It has been a haven for artists, writers, and thinkers throughout history.</p>\n\n    <h2>See Also</h2>\n    <ul>\n        <li><a href=\"/wiki/French_Revolution\">French Revolution</a></li>\n        <li><a href=\"/wiki/Eiffel_Tower\">Eiffel Tower</a></li>\n        <li><a href=\"/wiki/Louvre\">Louvre Museum</a></li>\n        <li><a href=\"/wiki/Notre-Dame_Cathedral\">Notre-Dame Cathedral</a></li>\n        <li><a href=\"/wiki/Le_Marais\">Le Marais</a></li>\n        <li><a href=\"/wiki/Champs-Élysées\">Champs-Élysées</a></li>\n        <li><a href=\"/wiki/Opéra_Garnier\">Opéra Garnier</a></li>\n        <li><a href=\"/wiki/Palace_of_Versailles\">Palace of Versailles</a></li>\n    </ul>\n</body>\n</html>\n```"
+
+	cleaned, err := cleanGeneratedHTML(input)
+	if err != nil {
+		t.Fatalf("cleanGeneratedHTML returned error: %v", err)
+	}
+
+	if strings.Contains(cleaned, "```") {
+		t.Fatalf("expected code fences to be removed, got %q", cleaned)
+	}
+
+	if !strings.HasPrefix(cleaned, "<div>") {
+		t.Fatalf("expected cleaned html to start with <div>, got %q", cleaned)
+	}
+
+	if !strings.Contains(cleaned, "<h1>Paris</h1>") {
+		t.Fatalf("expected cleaned html to contain Paris heading, got %q", cleaned)
 	}
 }
 
@@ -204,5 +257,3 @@ func TestGeneratorLive(t *testing.T) {
 		t.Logf("Backlinks: %s", strings.Join(backlinks, ", "))
 	}
 }
-
-
