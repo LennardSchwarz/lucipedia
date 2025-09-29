@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "${SERVER_PORT:-8081}:8080"
+      - "${SERVER_PORT:-8083}:8080"
     env_file:
       - .env
     volumes:
