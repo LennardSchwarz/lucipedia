@@ -41,3 +41,6 @@ The website is server side rendered static content. Templating via templ (https:
 
 # How to work in this projec
 There is PLAN.md file at the root of this project which specs out the next steps in detail. Always keep this file updated.
+
+Use air for live reloading. Usage:
+air -c .air.toml
