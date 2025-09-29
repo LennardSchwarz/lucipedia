@@ -12,6 +12,7 @@ require (
 	github.com/openai/openai-go/v2 v2.7.0
 	github.com/rotisserie/eris v0.5.4
 	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/net v0.44.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.0
 )
@@ -25,5 +26,5 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 )

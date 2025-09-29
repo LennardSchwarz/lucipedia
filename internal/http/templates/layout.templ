@@ -7,7 +7,8 @@ templ BaseLayout(title string) {
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
             <title>{ title }</title>
-            <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+            // typography plugin is needed for prose classes (h1, h2, references) used in llm wiki pages
+            <script src="https://cdn.tailwindcss.com?plugins=typography&version=3.4.17"></script>
         </head>
         <body class="h-full font-sans text-slate-800">
             <div class="flex min-h-screen flex-col bg-white">
