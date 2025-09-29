@@ -41,7 +41,5 @@ The website is server side rendered static content. Templating via templ (https:
 - Always log errors with contextual information
 
 # How to work in this project
-There is PLAN.md file at the root of this project which specs out the next steps in detail. Always keep this file updated.
-
 Use air for live reloading. Usage:
 air -c .air.toml

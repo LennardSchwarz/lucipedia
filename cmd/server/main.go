@@ -125,7 +125,7 @@ func run(ctx context.Context) error {
 	}
 
 	httpServer := &stdhttp.Server{
-		Addr:    fmt.Sprintf(":%d", cfg.ServerPort),
+		Addr:    fmt.Sprintf("0.0.0.0:%d", cfg.ServerPort),
 		Handler: transport.Handler(),
 	}
 

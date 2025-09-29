@@ -32,6 +32,14 @@ func Open(opts Options) (*gorm.DB, error) {
 		opts.BusyTimeout = 5 * time.Second
 	}
 
+	if opts.MaxOpenConns == 0 {
+		opts.MaxOpenConns = 1
+	}
+
+	if opts.MaxIdleConns == 0 {
+		opts.MaxIdleConns = 2
+	}
+
 	busyTimeout := opts.BusyTimeout
 	busyTimeoutMillis := busyTimeout / time.Millisecond
 	dsn := fmt.Sprintf("file:%s?_busy_timeout=%d&_foreign_keys=1&_journal_mode=WAL", opts.Path, busyTimeoutMillis)
