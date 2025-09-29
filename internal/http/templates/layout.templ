@@ -16,3 +16,22 @@ templ BaseLayout(title string) {
         </body>
     </html>
 }
+
+templ AppLayout(title string, query string) {
+    @BaseLayout(title) {
+        @Header(query)
+        <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-10 lg:flex-row lg:gap-12">
+            @Sidebar()
+            <main class="flex-1">
+                { children... }
+            </main>
+        </div>
+        @Footer()
+    }
+}
+
+templ Footer() {
+    <footer class="mt-auto border-t border-slate-200 bg-slate-50/80 py-6">
+        <div class="mx-auto max-w-6xl px-6 text-xs text-slate-500">{ DefaultFooterNote }</div>
+    </footer>
+}

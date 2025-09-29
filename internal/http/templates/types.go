@@ -1,14 +1,11 @@
 package templates
 
-// HomePageData contains the dynamic values rendered on the landing page.
+// DefaultFooterNote is shown in the shared layout when a page does not supply custom text.
+const DefaultFooterNote = "Lucipedia pages are generated on demand. Internal links create new articles the first time they are visited."
+
+// HomePageData contains dynamic values rendered on the landing page.
 type HomePageData struct {
-	Title              string
-	Subtitle           string
-	PageCountLabel     string
-	Description        string
-	IntroParagraphs    []string
-	FooterNote         string
-	BuilderAttribution string
+	FormattedPageCount string
 }
 
 // SearchResultView represents an individual search result entry.
@@ -19,7 +16,6 @@ type SearchResultView struct {
 
 // SearchPageData bundles template data for the search results page.
 type SearchPageData struct {
-	Title        string
 	Query        string
 	Results      []SearchResultView
 	ErrorMessage string
@@ -27,16 +23,12 @@ type SearchPageData struct {
 
 // ErrorPageData holds information for rendering an error view.
 type ErrorPageData struct {
-	Title       string
 	StatusLabel string
 	Message     string
 }
 
 // WikiPageData contains the dynamic values for a generated wiki entry.
 type WikiPageData struct {
-	Title      string
-	Query      string
-	Slug       string
-	HTML       string
-	FooterNote string
+	Title string
+	HTML  string
 }

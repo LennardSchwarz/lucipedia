@@ -21,7 +21,6 @@ const (
 	htmlContentType      = "text/html; charset=utf-8"
 	searchResultsLimit   = 10
 	errorFallbackMessage = "We couldn't process your request right now."
-	wikiFooterNote       = "Lucipedia pages are generated on demand. Internal links create new articles the first time they are visited."
 )
 
 type htmlResponse struct {
@@ -99,19 +98,8 @@ func (s *Server) homeHandler(ctx context.Context, _ *struct{}) (*htmlResponse, e
 		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, "We couldn't load Lucipedia right now.")
 	}
 
-	subtitle := fmt.Sprintf("The infinite encyclopedia. %s pages discovered so far.", formatCount(count))
 	data := templates.HomePageData{
-		Title:          "Lucipedia",
-		Subtitle:       subtitle,
-		PageCountLabel: fmt.Sprintf("%s pages discovered so far.", formatCount(count)),
-		Description:    "Lucipedia is a continuously generated encyclopedia where every visit uncovers fresh AI-written lore.",
-		IntroParagraphs: []string{
-			"Whenever you follow a link, Lucipedia first checks whether the page already exists. If not, the language model writes it on demand and saves it for future explorers.",
-			"New entries only appear when you follow existing links—there's no shortcut to unknown slugs.",
-			"Every article is dreamt up by an AI historian. Treat the knowledge as inspiration, not verified fact.",
-		},
-		BuilderAttribution: "Built with curiosity for wanderers of emergent knowledge.",
-		FooterNote:         wikiFooterNote,
+		FormattedPageCount: formatCount(count),
 	}
 
 	body, err := renderComponent(ctx, templates.HomePage(data))
@@ -179,11 +167,8 @@ func (s *Server) mostRecentHandler(ctx context.Context, _ *struct{}) (*htmlRespo
 	}
 
 	data := templates.WikiPageData{
-		Title:      title,
-		Query:      "",
-		Slug:       slug,
-		HTML:       html,
-		FooterNote: wikiFooterNote,
+		Title: title,
+		HTML:  html,
 	}
 
 	body, err := renderComponent(ctx, templates.WikiPage(data))
@@ -210,11 +195,8 @@ func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*htmlRespon
 	}
 
 	data := templates.WikiPageData{
-		Title:      title,
-		Query:      "",
-		Slug:       slug,
-		HTML:       html,
-		FooterNote: wikiFooterNote,
+		Title: title,
+		HTML:  html,
 	}
 
 	body, err := renderComponent(ctx, templates.WikiPage(data))
@@ -229,7 +211,6 @@ func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*htmlRespon
 func (s *Server) searchHandler(ctx context.Context, input *searchInput) (*htmlResponse, error) {
 	query := strings.TrimSpace(input.Query)
 	data := templates.SearchPageData{
-		Title: "Search • Lucipedia",
 		Query: query,
 	}
 
@@ -354,9 +335,7 @@ func classifyError(err error) (int, string) {
 
 func (s *Server) renderErrorResponse(ctx context.Context, status int, message string) (*htmlResponse, error) {
 	label := fmt.Sprintf("%d %s", status, stdhttp.StatusText(status))
-	title := fmt.Sprintf("%s • Lucipedia", label)
 	template := templates.ErrorPage(templates.ErrorPageData{
-		Title:       title,
 		StatusLabel: label,
 		Message:     message,
 	})

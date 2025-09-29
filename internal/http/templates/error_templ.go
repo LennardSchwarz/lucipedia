@@ -41,18 +41,14 @@ func ErrorPage(data ErrorPageData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = Header("").Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"mx-auto flex w-full max-w-3xl flex-col items-start gap-6 px-6 py-16\"><div class=\"rounded-lg border border-red-200 bg-red-50 px-6 py-5 shadow-sm\"><h1 class=\"text-3xl font-semibold text-red-700\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mx-auto max-w-3xl py-6\"><div class=\"rounded-lg border border-red-200 bg-red-50 px-6 py-5 shadow-sm\"><h1 class=\"text-3xl font-semibold text-red-700\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(data.StatusLabel)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/error.templ`, Line: 8, Col: 82}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/error.templ`, Line: 7, Col: 82}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -65,7 +61,7 @@ func ErrorPage(data ErrorPageData) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(data.Message)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/error.templ`, Line: 9, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/error.templ`, Line: 8, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -77,7 +73,7 @@ func ErrorPage(data ErrorPageData) templ.Component {
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = BaseLayout(data.Title).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = AppLayout(data.StatusLabel+" • Lucipedia", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
