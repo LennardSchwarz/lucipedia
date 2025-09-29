@@ -1,0 +1,21 @@
+name: Deploy Environment
+
+on:
+  workflow_call:
+    secrets:
+      webhook_url:
+        description: 'Portainer webhook URL'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger rebuild via Portainer webhook
+        run: |
+          http_code=$(curl -s -o response.txt -w "%{http_code}" -X POST ${{ secrets.webhook_url }})
+          echo "Status code: $http_code"
+          if [ "$http_code" -ge 400 ]; then
+            echo "Error: Server responded with status code $http_code"
+            exit 1
+          fi
