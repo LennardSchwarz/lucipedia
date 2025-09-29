@@ -1,5 +1,20 @@
 package templates
 
+import "context"
+
+type pageCountKey struct{}
+
+// WithPageCount stores the formatted page count in the provided context for later retrieval during template rendering.
+func WithPageCount(ctx context.Context, count string) context.Context {
+	return context.WithValue(ctx, pageCountKey{}, count)
+}
+
+// PageCountFromContext returns the formatted page count if it was previously set via WithPageCount.
+func PageCountFromContext(ctx context.Context) string {
+	value, _ := ctx.Value(pageCountKey{}).(string)
+	return value
+}
+
 // HomePageData contains dynamic values rendered on the landing page.
 type HomePageData struct {
 	FormattedPageCount string
