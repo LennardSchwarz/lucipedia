@@ -27,7 +27,6 @@ Deployed environment variables are saved in my password manager.
 
 ##### Updown Healthcheck
 
-- Add exception in pangolin to health check endpoint (/api/health)
 - Add health check in [updown.io](https://updown.io/)
 
 
