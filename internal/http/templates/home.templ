@@ -1,19 +1,17 @@
 package templates
 
 templ HomePage(data HomePageData) {
-    @AppLayout("Lucipedia", "") {
+    @AppLayout("Lucipedia", "", data.FormattedPageCount) {
         <article class="max-w-2xl">
             <header class="border-b border-slate-200 pb-4">
                 <h1 class="text-3xl font-bold text-slate-900">Lucipedia</h1>
-                <p class="mt-2 text-sm text-slate-500">{ "The infinite encyclopedia. " + data.FormattedPageCount + " pages discovered so far." }</p>
             </header>
             <section class="mt-6 space-y-4 text-base leading-7 text-slate-700">
-                <p class="font-semibold text-slate-800">{ data.FormattedPageCount + " pages discovered so far." }</p>
-                <p>Lucipedia is a continuously generated encyclopedia where every visit uncovers fresh AI-written lore.</p>
-                <p>Whenever you follow a link, Lucipedia first checks whether the page already exists. If not, the language model writes it on demand and saves it for future explorers.</p>
-                <p>New entries only appear when you follow existing links—there's no shortcut to unknown slugs.</p>
-                <p>Every article is dreamt up by an AI historian. Treat the knowledge as inspiration, not verified fact.</p>
-                <p class="pt-2 text-slate-600">Built with curiosity for wanderers of emergent knowledge.</p>
+                <p>Lucipedia is a continuously generated encyclopedia where every page is AI-generated. Inspired by <a href="https://wikipedia.com" class="underline">Wikipedia</a>, it allows users o collectively explore the knowledge inside a large language model.</p>
+                <p>Whenever you open a page, Lucipedia first checks whether the article already exists. If not, <code>mistralai/mistral-small-3.2-24b-instruct</code> writes it on the fly and saves it for future explorers.</p>
+                <p>Treat the knowledge as inspiration, not verified fact.</p>
+                <p>Get started by searching for a topic or visiting a <a href="/random" class="underline">random page</a>.</p>
+                <p>Built by <a href="https://github.com/LennardSchwarz" class="underline">Lennard</a>. Happy exploring!</p>
             </section>
         </article>
     }

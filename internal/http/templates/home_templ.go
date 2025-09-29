@@ -41,39 +41,13 @@ func HomePage(data HomePageData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article class=\"max-w-2xl\"><header class=\"border-b border-slate-200 pb-4\"><h1 class=\"text-3xl font-bold text-slate-900\">Lucipedia</h1><p class=\"mt-2 text-sm text-slate-500\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("The infinite encyclopedia. " + data.FormattedPageCount + " pages discovered so far.")
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/home.templ`, Line: 8, Col: 142}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</p></header><section class=\"mt-6 space-y-4 text-base leading-7 text-slate-700\"><p class=\"font-semibold text-slate-800\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(data.FormattedPageCount + " pages discovered so far.")
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/home.templ`, Line: 11, Col: 111}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p><p>Lucipedia is a continuously generated encyclopedia where every visit uncovers fresh AI-written lore.</p><p>Whenever you follow a link, Lucipedia first checks whether the page already exists. If not, the language model writes it on demand and saves it for future explorers.</p><p>New entries only appear when you follow existing links—there's no shortcut to unknown slugs.</p><p>Every article is dreamt up by an AI historian. Treat the knowledge as inspiration, not verified fact.</p><p class=\"pt-2 text-slate-600\">Built with curiosity for wanderers of emergent knowledge.</p></section></article>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article class=\"max-w-2xl\"><header class=\"border-b border-slate-200 pb-4\"><h1 class=\"text-3xl font-bold text-slate-900\">Lucipedia</h1></header><section class=\"mt-6 space-y-4 text-base leading-7 text-slate-700\"><p>Lucipedia is a continuously generated encyclopedia where every page is AI-generated. Inspired by <a href=\"https://wikipedia.com\" class=\"underline\">Wikipedia</a>, it allows users o collectively explore the knowledge inside a large language model.</p><p>Whenever you open a page, Lucipedia first checks whether the article already exists. If not, <code>mistralai/mistral-small-3.2-24b-instruct</code> writes it on the fly and saves it for future explorers.</p><p>Treat the knowledge as inspiration, not verified fact.</p><p>Get started by searching for a topic or visiting a <a href=\"/random\" class=\"underline\">random page</a>.</p><p>Built by <a href=\"https://github.com/LennardSchwarz\" class=\"underline\">Lennard</a>. Happy exploring!</p></section></article>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = AppLayout("Lucipedia", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = AppLayout("Lucipedia", "", data.FormattedPageCount).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

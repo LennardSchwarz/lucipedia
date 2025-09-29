@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Header(query string) templ.Component {
+func Header(query string, pageCount string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,20 +29,48 @@ func Header(query string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur\"><div class=\"mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between\"><a href=\"/\" aria-label=\"Lucipedia home\" class=\"flex items-center gap-3 text-xl font-semibold text-slate-900\"><span class=\"text-2xl\">📚</span><div class=\"flex flex-col\"><span>Lucipedia</span> <span class=\"text-xs font-normal text-slate-500\">The infinite encyclopedia.</span></div></a><form action=\"/search\" method=\"get\" class=\"flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center\"><label class=\"sr-only\" for=\"search-input\">Search Lucipedia</label> <input class=\"min-w-0 flex-1 rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:flex-none sm:w-64\" id=\"search-input\" name=\"q\" placeholder=\"Search Lucipedia\" type=\"search\" maxlength=\"80\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<header class=\"sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur\"><div class=\"mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between\"><a href=\"/\" aria-label=\"Lucipedia home\" class=\"flex items-center gap-3 text-xl font-semibold text-slate-900\"><span class=\"text-2xl\">📚</span><div class=\"flex flex-col\"><span>Lucipedia</span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(query)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/navigation.templ`, Line: 22, Col: 33}
+		if pageCount != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span class=\"text-xs font-normal text-slate-500\">The infinite encyclopedia. ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var2 string
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(pageCount)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/navigation.templ`, Line: 11, Col: 111}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " pages discovered so far.</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span class=\"text-xs font-normal text-slate-500\">The infinite encyclopedia.</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></a><form action=\"/search\" method=\"get\" class=\"flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center\"><label class=\"sr-only\" for=\"search-input\">Search Lucipedia</label> <input class=\"min-w-0 flex-1 rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:flex-none sm:w-64\" id=\"search-input\" name=\"q\" placeholder=\"Search Lucipedia\" type=\"search\" maxlength=\"80\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"> <button type=\"submit\" class=\"rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1\">Search</button></form></div></header>")
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(query)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/navigation.templ`, Line: 26, Col: 33}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"> <button type=\"submit\" class=\"rounded bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1\">Search</button></form></div></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -66,12 +94,12 @@ func Sidebar() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var3 == nil {
-			templ_7745c5c3_Var3 = templ.NopComponent
+		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var4 == nil {
+			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<aside class=\"w-full border-b border-slate-200 pb-6 pt-6 text-sm text-slate-700 md:w-40 md:shrink-0 md:border-b-0 md:border-r md:pb-10 md:pr-6 md:pt-10\"><nav class=\"space-y-4\"><div><h2 class=\"mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500\">Navigation</h2><ul class=\"space-y-1\"><li><a class=\"text-indigo-600 hover:underline\" href=\"/\">Main page</a></li><li><a class=\"hover:underline\" href=\"/random\">Random page</a></li><li><a class=\"hover:underline\" href=\"/most-recent\">Most recent</a></li></ul></div></nav></aside>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<aside class=\"w-full border-b border-slate-200 pb-6 pt-6 text-sm text-slate-700 lg:w-40 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-10 lg:pr-6 lg:pt-10\"><nav class=\"space-y-4\"><div><h2 class=\"mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500\">Navigation</h2><ul class=\"space-y-1\"><li><a class=\"hover:underline\" href=\"/\">Main page</a></li><li><a class=\"hover:underline\" href=\"/random\">Random page</a></li><li><a class=\"hover:underline\" href=\"/most-recent\">Most recent</a></li></ul></div></nav></aside>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -1,8 +1,5 @@
 package templates
 
-// DefaultFooterNote is shown in the shared layout when a page does not supply custom text.
-const DefaultFooterNote = "Lucipedia pages are generated on demand. Internal links create new articles the first time they are visited."
-
 // HomePageData contains dynamic values rendered on the landing page.
 type HomePageData struct {
 	FormattedPageCount string
