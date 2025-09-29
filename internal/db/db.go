@@ -41,7 +41,7 @@ func Open(opts Options) (*gorm.DB, error) {
 	}
 
 	busyTimeout := opts.BusyTimeout
-	busyTimeoutMillis := busyTimeout / time.Millisecond
+	busyTimeoutMillis := int(busyTimeout / time.Millisecond)
 	dsn := fmt.Sprintf("file:%s?_busy_timeout=%d&_foreign_keys=1&_journal_mode=WAL", opts.Path, busyTimeoutMillis)
 
 	gormLogger := opts.Logger

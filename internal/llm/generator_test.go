@@ -128,9 +128,8 @@ func TestGeneratorLive(t *testing.T) {
 	logger := logrus.New()
 	logger.SetOutput(os.Stdout)
 
-	err := godotenv.Load()
-	if err != nil {
-		eris.Wrap(err, "Failed to load .env file")
+	if err := godotenv.Load(); err != nil {
+		t.Logf("%v", eris.Wrap(err, "loadig .env file"))
 	}
 
 	if os.Getenv("LLM_LIVE_TEST") != "1" {
@@ -145,7 +144,7 @@ func TestGeneratorLive(t *testing.T) {
 	baseURL := strings.TrimSpace(os.Getenv("LLM_ENDPOINT"))
 
 	if baseURL == "" {
-		eris.Wrap(err, "LLM_ENDPOINT is required for the live generator test")
+		t.Skip("LLM_ENDPOINT is required for the live generator test")
 	}
 
 	client, err := NewClient(ClientOptions{APIKey: apiKey, BaseURL: baseURL, Logger: logger})
@@ -204,5 +203,3 @@ func TestGeneratorLive(t *testing.T) {
 		t.Logf("Backlinks: %s", strings.Join(backlinks, ", "))
 	}
 }
-
-

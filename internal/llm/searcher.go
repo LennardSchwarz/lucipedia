@@ -74,7 +74,7 @@ func (s *openRouterSearcher) Search(ctx context.Context, query string, numResult
 	}
 
 	if numResults <= 0 {
-		eris.New("number of results must be positive")
+		return nil, eris.New("number of results must be positive")
 	}
 
 	params := openai.ChatCompletionNewParams{

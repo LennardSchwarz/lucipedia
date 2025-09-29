@@ -226,7 +226,6 @@ func (s *Server) searchHandler(ctx context.Context, input *searchInput) (*htmlRe
 			} else {
 				return s.renderErrorResponse(ctx, status, message)
 			}
-			status = stdhttp.StatusBadRequest
 		} else {
 			data.Results = make([]templates.SearchResultView, 0, len(results))
 			for _, result := range results {
