@@ -159,7 +159,40 @@ func (s *Server) mostRecentHandler(ctx context.Context, _ *struct{}) (*htmlRespo
 		return s.renderErrorResponse(ctx, status, message)
 	}
 
-	return newHTMLResponse(stdhttp.StatusOK, []byte(page.HTML)), nil
+	if page == nil {
+		err := eris.Wrap(wiki.ErrNoPages, "most recent page is unavailable")
+		s.recordError(ctx, err, "loading most recent page", nil)
+		return s.renderErrorResponse(ctx, stdhttp.StatusNotFound, "Lucipedia doesn't have any pages yet. Follow a link to generate the first article.")
+	}
+
+	slug := strings.TrimSpace(page.Slug)
+	html := strings.TrimSpace(page.HTML)
+	if html == "" {
+		err := eris.New("most recent page html is empty")
+		s.recordError(ctx, err, "validating most recent page html", logrus.Fields{"slug": slug})
+		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, errorFallbackMessage)
+	}
+
+	title := "Lucipedia"
+	if slug != "" {
+		title = fmt.Sprintf("%s • Lucipedia", slug)
+	}
+
+	data := templates.WikiPageData{
+		Title:      title,
+		Query:      "",
+		Slug:       slug,
+		HTML:       html,
+		FooterNote: wikiFooterNote,
+	}
+
+	body, err := renderComponent(ctx, templates.WikiPage(data))
+	if err != nil {
+		s.recordError(ctx, err, "rendering most recent page", logrus.Fields{"slug": slug})
+		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, errorFallbackMessage)
+	}
+
+	return newHTMLResponse(stdhttp.StatusOK, body), nil
 }
 
 func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*htmlResponse, error) {

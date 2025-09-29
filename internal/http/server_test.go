@@ -128,9 +128,19 @@ func TestMostRecentRouteServesHTML(t *testing.T) {
 		t.Fatalf("expected status 200, got %d", rec.Code)
 	}
 
-	if rec.Body.String() != "<p>Alpha</p>" {
-		t.Fatalf("expected most recent HTML in body, got %q", rec.Body.String())
+	body := rec.Body.String()
+	if !contains(body, "<p>Alpha</p>") {
+		t.Fatalf("expected most recent wiki HTML in body, got %q", body)
 	}
+
+	if !contains(body, "sticky top-0") {
+		t.Fatalf("expected sticky header classes in body, got %q", body)
+	}
+
+	if !contains(body, "Lucipedia pages are generated on demand") {
+		t.Fatalf("expected footer note in body, got %q", body)
+	}
+
 }
 
 func TestMostRecentRouteHandlesMissingPages(t *testing.T) {
@@ -232,6 +242,7 @@ func TestHealthRouteReportsOK(t *testing.T) {
 	if rec.Code != 200 {
 		t.Fatalf("expected status 200, got %d", rec.Code)
 	}
+
 }
 
 // helper utilities
