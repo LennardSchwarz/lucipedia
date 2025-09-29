@@ -8,7 +8,8 @@ This project is only written in golang.
 
 # Code Style
 
-- Prefer simple and verbose solutions
+- Prefer simple solutions, don't be clever
+- Where appropriate, use well established open source libraries
 
 ## Config handling
 
@@ -26,8 +27,8 @@ When the server gets a "wiki/some-slug" request, it looks up "some-slug" in the 
 
 Each entry is valid HTML with lots of backlinks to "wiki/some-other-slug" entries that the user can explore.
 
-The domain layer also exposes a search functionality for all pages.
-All pages are thus embedded with an llm and retriaval works via embedding the search request and comparing with KNN.
+The domain layer also exposes a search functionality.
+
 
 ## Transport Layer
 
@@ -39,7 +40,7 @@ The website is server side rendered static content. Templating via templ (https:
 - Use eris (https://github.com/rotisserie/eris) for errors
 - Always log errors with contextual information
 
-# How to work in this projec
+# How to work in this project
 There is PLAN.md file at the root of this project which specs out the next steps in detail. Always keep this file updated.
 
 Use air for live reloading. Usage:

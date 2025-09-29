@@ -1,0 +1,12 @@
+{
+    "go.goroot": "/Users/lennard/.local/share/mise/installs/go/1.24.7",
+    "debug.javascript.defaultRuntimeExecutable": {
+        "pwa-node": "/Users/lennard/.local/share/mise/shims/node"
+    },
+    "python.defaultInterpreterPath": "/Users/lennard/.local/share/mise/installs/python/3.11.4/bin/python",
+    "go.alternateTools": {
+        "go": "/Users/lennard/.local/share/mise/shims/go",
+        "dlv": "/Users/lennard/.local/share/mise/shims/dlv",
+        "gopls": "/Users/lennard/.local/share/mise/shims/gopls"
+    }
+}

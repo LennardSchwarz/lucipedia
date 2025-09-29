@@ -123,7 +123,7 @@ func TestGeneratorPropagatesAPIError(t *testing.T) {
 	}
 }
 
-func TestGeneratorLiveWithOpenRouter(t *testing.T) {
+func TestGeneratorLive(t *testing.T) {
 	// THIS TEST NEEDS AN .env FILE ON SAME LEVEL AS THIS TEST FILE. SEE .env.example
 	logger := logrus.New()
 	logger.SetOutput(os.Stdout)
@@ -204,3 +204,5 @@ func TestGeneratorLiveWithOpenRouter(t *testing.T) {
 		t.Logf("Backlinks: %s", strings.Join(backlinks, ", "))
 	}
 }
+
+

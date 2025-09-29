@@ -26,15 +26,12 @@
 - Provide a simple mock generator for unit tests and deterministic fixtures for HTML/backlink content.
 
 ## 5. Search Experience
-- Start with a simple text search that scans stored pages and highlights matching slugs or headings.
-- Add configuration flags controlling search result limits and throttling behaviour.
-- Instrument search operations with timing logs so accuracy and latency can be iterated on later.
+- The search experience is a simple HTML page that lists all pages in the database, ranked by similarity to the query.
 
 ## 6. Domain Service
-- Implement `internal/wiki.Service` with dependencies on the repository, generator, and logger/Sentry hub.
-- Expose `GetPage(ctx, slug)` to fetch or lazily generate pages: check cache/database, call the generator on misses, validate backlinks (ensure `/wiki/...` links), save the page, and return HTML.
-- Expose `Search(ctx, query, limit)` to query stored pages using the simple matching logic introduced in the search experience.
-- Make sure every branch wraps and logs errors with the relevant slug or query for traceability.
+- ✅ Implemented `internal/wiki.Service` with repository, generator, LLM searcher, logger, and optional Sentry hub dependencies.
+- ✅ `GetPage(ctx, slug)` returns stored HTML or generates/persists new content after backlink validation.
+- ✅ `Search(ctx, query, limit)` now delegates to the LLM searcher to return relevant slugs directly, ready for future embedding-backed expansion.
 
 ## 7. HTTP Transport Layer
 - Build handlers in `internal/http` for:
