@@ -14,6 +14,7 @@ type Repository interface {
 	GetBySlug(ctx context.Context, slug string) (*Page, error)
 	CreateOrUpdate(ctx context.Context, page *Page) error
 	ListPages(ctx context.Context) ([]Page, error)
+	CountPages(ctx context.Context) (int64, error)
 }
 
 // GormRepository persists pages using a Gorm database connection.
@@ -83,6 +84,18 @@ func (r *GormRepository) ListPages(ctx context.Context) ([]Page, error) {
 	}
 
 	return pages, nil
+}
+
+// CountPages returns the total number of persisted wiki pages.
+func (r *GormRepository) CountPages(ctx context.Context) (int64, error) {
+	var count int64
+
+	if err := r.db.WithContext(ctx).Model(&Page{}).Count(&count).Error; err != nil {
+		r.logError(nil, err, "counting pages")
+		return 0, eris.Wrap(err, "counting pages")
+	}
+
+	return count, nil
 }
 
 func (r *GormRepository) logError(fields logrus.Fields, err error, message string) {

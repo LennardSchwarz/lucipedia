@@ -34,12 +34,13 @@
 - ✅ `Search(ctx, query, limit)` now delegates to the LLM searcher to return relevant slugs directly, ready for future embedding-backed expansion.
 
 ## 7. HTTP Transport Layer
-- Build handlers in `internal/http` for:
+- ✅ Build handlers in `internal/http` powered by Huma + templ for:
+  - `GET /` rendering the Lucipedia home page with Tailwind styling via CDN.
   - `GET /wiki/{slug}` returning the stored HTML with `Content-Type: text/html`.
-  - `GET /search?q=` rendering an HTML results page that links to `/wiki/{slug}` entries ranked by similarity.
+  - `GET /search?q=` rendering an HTML results page linking to `/wiki/{slug}` entries ranked by similarity.
   - `GET /healthz` exposing a simple status check (DB ping, generator readiness).
-- Add middleware for request logging, panic recovery, request IDs, and Sentry tracing.
-- Ensure handlers translate domain errors into meaningful HTTP responses (404 when a page truly does not exist, 500 for unexpected errors).
+- ✅ Add middleware for request logging, panic recovery, per-request IDs, and Sentry tracing.
+- ✅ Ensure handlers translate domain errors into meaningful HTTP responses (400 for validation misses, 404 when a page cannot be produced, 500 for unexpected failures) and ship HTML error views.
 
 ## 8. Application Wiring & Lifecycle
 - Complete `cmd/server/main.go` to load config, initialise logging/Sentry, open the database, run migrations, build repository + services, and start the HTTP server.

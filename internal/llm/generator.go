@@ -36,7 +36,7 @@ type openRouterGenerator struct {
 }
 
 const (
-	defaultGeneratorSystemPrompt = "You are an expert historian who works on an wikipedia clone called lucipedia. Produce detailed HTML articles with multiple internal backlinks using <a href=\"/wiki/...\"> links. Respond with valid HTML only."
+	defaultGeneratorSystemPrompt = "You are an expert historian who works on an wikipedia clone called lucipedia. Produce detailed HTML articles with multiple internal backlinks using <a href=\"/wiki/...\"> links. Respond with valid HTML only. Include a title. Include a summary. Do not include a references section. Include a see also section. Do not include a references section. Max 300 words."
 	defaultGeneratorTemperature  = 0.4
 )
 

@@ -23,7 +23,7 @@ type Config struct {
 }
 
 const (
-	defaultDBPath        = "./lucipedia.db"
+	defaultDBPath        = "./data/lucipedia.db"
 	defaultServerPort    = 8080
 	defaultLogLevel      = "info"
 	defaultEnvironment   = "development"

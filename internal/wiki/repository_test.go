@@ -96,6 +96,29 @@ func TestListPagesReturnsAlphabeticalOrder(t *testing.T) {
 	}
 }
 
+func TestCountPagesReturnsTotal(t *testing.T) {
+	t.Parallel()
+
+	repo := setupRepository(t)
+	ctx := context.Background()
+
+	for _, slug := range []string{"alpha", "beta", "gamma"} {
+		page := &Page{Slug: slug, HTML: "<p>Content</p>"}
+		if err := repo.CreateOrUpdate(ctx, page); err != nil {
+			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		}
+	}
+
+	count, err := repo.CountPages(ctx)
+	if err != nil {
+		t.Fatalf("CountPages returned error: %v", err)
+	}
+
+	if count != 3 {
+		t.Fatalf("expected count 3, got %d", count)
+	}
+}
+
 func setupRepository(t *testing.T) *GormRepository {
 	t.Helper()
 

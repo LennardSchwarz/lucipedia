@@ -28,7 +28,7 @@ func InitSentry(logger *logrus.Logger, settings SentrySettings) (*sentry.Hub, fu
 		Release:     settings.Release,
 	})
 	if err != nil {
-		return nil, nil, eris.Wrap(err, "initializing sentry client")
+		return nil, nil, eris.Wrap(err, "error initializing sentry client")
 	}
 
 	hub := sentry.NewHub(client, sentry.NewScope())

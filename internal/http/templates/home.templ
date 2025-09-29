@@ -1,0 +1,29 @@
+package templates
+
+templ HomePage(data HomePageData) {
+    @BaseLayout(data.Title) {
+        @Header("")
+        <div class="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:flex-row lg:gap-12">
+            @Sidebar()
+            <main class="flex-1">
+                <article class="max-w-2xl">
+                    <header class="border-b border-slate-200 pb-4">
+                        <h1 class="text-3xl font-bold text-slate-900">{ data.Title }</h1>
+                        <p class="mt-2 text-sm text-slate-500">{ data.Subtitle }</p>
+                    </header>
+                    <section class="mt-6 space-y-4 text-base leading-7 text-slate-700">
+                        <p class="font-semibold text-slate-800">{ data.PageCountLabel }</p>
+                        <p>{ data.Description }</p>
+                        for _, paragraph := range data.IntroParagraphs {
+                            <p>{ paragraph }</p>
+                        }
+                        <p class="pt-2 text-slate-600">{ data.BuilderAttribution }</p>
+                    </section>
+                </article>
+            </main>
+        </div>
+        <footer class="border-t border-slate-200 bg-slate-50/80 py-6">
+            <div class="mx-auto max-w-6xl px-6 text-xs text-slate-500">{ data.FooterNote }</div>
+        </footer>
+    }
+}

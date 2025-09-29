@@ -3,8 +3,11 @@ module lucipedia/app
 go 1.24.7
 
 require (
+	github.com/a-h/templ v0.3.943
+	github.com/danielgtaylor/huma/v2 v2.34.1
 	github.com/getsentry/sentry-go v0.35.3
 	github.com/getsentry/sentry-go/logrus v0.35.3
+	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/openai/openai-go/v2 v2.7.0
 	github.com/rotisserie/eris v0.5.4
@@ -22,5 +25,5 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 )
