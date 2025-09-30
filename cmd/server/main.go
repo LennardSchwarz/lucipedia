@@ -13,12 +13,9 @@ import (
 	"github.com/rotisserie/eris"
 	"github.com/sirupsen/logrus"
 
-	"lucipedia/app/internal/config"
-	appdb "lucipedia/app/internal/db"
-	apphttp "lucipedia/app/internal/http"
-	"lucipedia/app/internal/llm"
-	applog "lucipedia/app/internal/log"
-	"lucipedia/app/internal/wiki"
+	"lucipedia/app/internal/app/bootstrap"
+	"lucipedia/app/internal/platform/config"
+	applog "lucipedia/app/internal/platform/log"
 )
 
 func main() {
@@ -53,81 +50,25 @@ func run(ctx context.Context) error {
 	}
 	defer flush()
 
-	dbConn, err := appdb.Open(appdb.Options{Path: cfg.DBPath})
+	result, err := bootstrap.Build(ctx, bootstrap.Dependencies{
+		Config:    *cfg,
+		Logger:    logger,
+		SentryHub: sentryHub,
+	})
 	if err != nil {
-		return eris.Wrap(err, "opening database")
+		return eris.Wrap(err, "building application components")
 	}
+
 	defer func() {
-		if closeErr := appdb.Close(dbConn); closeErr != nil {
-			logger.WithError(closeErr).Error("closing database")
+		if result.Cleanup == nil {
+			return
+		}
+		if closeErr := result.Cleanup(); closeErr != nil {
+			logger.WithError(closeErr).Error("closing application resources")
 		}
 	}()
 
-	if err := wiki.Migrate(ctx, dbConn, logger); err != nil {
-		return eris.Wrap(err, "running migrations")
-	}
-
-	repository, err := wiki.NewRepository(dbConn, logger)
-	if err != nil {
-		return eris.Wrap(err, "building wiki repository")
-	}
-
-	client, err := llm.NewClient(llm.ClientOptions{
-		APIKey:  cfg.LLMAPIKey,
-		BaseURL: cfg.LLMEndpoint,
-		Logger:  logger,
-	})
-	if err != nil {
-		return eris.Wrap(err, "creating llm client")
-	}
-
-	if len(cfg.LLMModels) == 0 {
-		return eris.New("LLM_MODELS must include at least one model name")
-	}
-
-	generatorModel := cfg.LLMModels[0]
-	searcherModel := generatorModel
-	if len(cfg.LLMModels) > 1 {
-		searcherModel = cfg.LLMModels[1]
-	}
-
-	generator, err := llm.NewGenerator(llm.GeneratorOptions{
-		Client: client,
-		Model:  generatorModel,
-	})
-	if err != nil {
-		return eris.Wrap(err, "initialising generator")
-	}
-
-	searcher, err := llm.NewSearcher(llm.SearcherOptions{
-		Client: client,
-		Model:  searcherModel,
-	})
-	if err != nil {
-		return eris.Wrap(err, "initialising searcher")
-	}
-
-	wikiService, err := wiki.NewService(repository, generator, searcher, logger, sentryHub)
-	if err != nil {
-		return eris.Wrap(err, "creating wiki service")
-	}
-
-	transport, err := apphttp.NewServer(apphttp.Options{
-		WikiService: wikiService,
-		Repository:  repository,
-		Generator:   generator,
-		Database:    dbConn,
-		Logger:      logger,
-		SentryHub:   sentryHub,
-		RateLimiter: apphttp.RateLimiterSettings{
-			Burst:             cfg.RateLimit.Burst,
-			RequestsPerSecond: cfg.RateLimit.RequestsPerSecond,
-			ClientTTL:         cfg.RateLimit.ClientTTL,
-		},
-	})
-	if err != nil {
-		return eris.Wrap(err, "initialising http transport")
-	}
+	transport := result.HTTPServer
 
 	httpServer := &stdhttp.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%d", cfg.ServerPort),
