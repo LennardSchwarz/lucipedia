@@ -20,6 +20,17 @@ type HomePageData struct {
 	FormattedPageCount string
 }
 
+// PageListEntry represents a link to a wiki page used in list views.
+type PageListEntry struct {
+	Title string
+	URL   string
+}
+
+// AllPagesPageData contains data required to render the list of all wiki pages.
+type AllPagesPageData struct {
+	Pages []PageListEntry
+}
+
 // SearchResultView represents an individual search result entry.
 type SearchResultView struct {
 	Title string

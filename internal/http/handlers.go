@@ -52,6 +52,13 @@ func (s *Server) registerHomeRoute() {
 	huma.Get(s.api, "/", s.homeHandler, htmlOperation("Lucipedia home", stdhttp.StatusInternalServerError))
 }
 
+func (s *Server) registerAllPagesRoute() {
+	huma.Get(s.api, "/all", s.allPagesHandler, htmlOperation(
+		"List all Lucipedia pages",
+		stdhttp.StatusInternalServerError,
+	))
+}
+
 func (s *Server) registerRandomRoute() {
 	huma.Get(s.api, "/random", s.randomHandler, htmlOperation(
 		"Redirect to random page",
@@ -109,6 +116,38 @@ func (s *Server) homeHandler(ctx context.Context, _ *struct{}) (*htmlResponse, e
 	if err != nil {
 		s.recordError(ctx, err, "rendering home page", nil)
 		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, "We couldn't render the homepage.")
+	}
+
+	return newHTMLResponse(stdhttp.StatusOK, body), nil
+}
+
+func (s *Server) allPagesHandler(ctx context.Context, _ *struct{}) (*htmlResponse, error) {
+	pages, err := s.repository.ListPages(ctx)
+	if err != nil {
+		s.recordError(ctx, err, "listing wiki pages", nil)
+		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, "We couldn't load the list of pages.")
+	}
+
+	entries := make([]templates.PageListEntry, 0, len(pages))
+	for _, page := range pages {
+		slug := strings.TrimSpace(page.Slug)
+		if slug == "" {
+			s.recordError(ctx, eris.New("page slug is empty"), "validating page for listing", logrus.Fields{"page_id": page.ID})
+			continue
+		}
+
+		entries = append(entries, templates.PageListEntry{
+			Title: slug,
+			URL:   "/wiki/" + slug,
+		})
+	}
+
+	data := templates.AllPagesPageData{Pages: entries}
+	renderCtx := s.contextWithPageCount(ctx, logrus.Fields{"pages": len(entries)})
+	body, err := renderComponent(renderCtx, templates.AllPagesPage(data))
+	if err != nil {
+		s.recordError(ctx, err, "rendering all pages view", nil)
+		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, "We couldn't render the all pages view.")
 	}
 
 	return newHTMLResponse(stdhttp.StatusOK, body), nil
