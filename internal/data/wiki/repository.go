@@ -2,6 +2,7 @@ package wiki
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/rotisserie/eris"
@@ -48,8 +49,8 @@ func (r *Repository) GetBySlug(ctx context.Context, slug string) (*domainwiki.Pa
 	return toDomainPage(&record), nil
 }
 
-// CreateOrUpdate stores the wiki page, inserting or updating the row as needed.
-func (r *Repository) CreateOrUpdate(ctx context.Context, page *domainwiki.Page) error {
+// Create stores a new wiki page. It returns an error when the slug already exists.
+func (r *Repository) Create(ctx context.Context, page *domainwiki.Page) error {
 	if page == nil {
 		return eris.New("page is nil")
 	}
@@ -59,16 +60,22 @@ func (r *Repository) CreateOrUpdate(ctx context.Context, page *domainwiki.Page) 
 		return eris.New("page slug is required")
 	}
 
-	record := PageRecord{
+	record := &PageRecord{
 		Slug: trimmedSlug,
 		HTML: strings.TrimSpace(page.HTML),
 	}
 
-	if err := r.db.WithContext(ctx).Save(&record).Error; err != nil {
-		r.logError(logrus.Fields{"slug": record.Slug}, err, "saving page")
-		return eris.Wrapf(err, "saving page: %s", record.Slug)
+	if err := r.db.WithContext(ctx).Create(record).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) || strings.Contains(strings.ToLower(err.Error()), "unique") {
+			dupErr := eris.Errorf("page with slug %s already exists", trimmedSlug)
+			r.logError(logrus.Fields{"slug": trimmedSlug}, dupErr, "creating page with duplicate slug")
+			return dupErr
+		}
+		r.logError(logrus.Fields{"slug": trimmedSlug}, err, "creating page")
+		return eris.Wrapf(err, "creating page: %s", trimmedSlug)
 	}
 
+	page.Slug = trimmedSlug
 	return nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -35,15 +36,15 @@ func TestGetBySlugReturnsNilForMissingPage(t *testing.T) {
 	}
 }
 
-func TestCreateOrUpdateRoundTrip(t *testing.T) {
+func TestCreateRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	repo := setupRepository(t)
 	ctx := context.Background()
 
 	original := &domainwiki.Page{Slug: " example ", HTML: "<p>Hello</p>"}
-	if err := repo.CreateOrUpdate(ctx, original); err != nil {
-		t.Fatalf("CreateOrUpdate returned error: %v", err)
+	if err := repo.Create(ctx, original); err != nil {
+		t.Fatalf("Create returned error: %v", err)
 	}
 
 	stored, err := repo.GetBySlug(ctx, "example")
@@ -75,8 +76,8 @@ func TestListPagesReturnsAlphabeticalOrder(t *testing.T) {
 
 	for _, page := range pages {
 		p := page
-		if err := repo.CreateOrUpdate(ctx, &p); err != nil {
-			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		if err := repo.Create(ctx, &p); err != nil {
+			t.Fatalf("Create returned error: %v", err)
 		}
 	}
 
@@ -105,8 +106,8 @@ func TestCountPagesReturnsTotal(t *testing.T) {
 
 	for _, slug := range []string{"alpha", "beta", "gamma"} {
 		page := &domainwiki.Page{Slug: slug, HTML: "<p>Content</p>"}
-		if err := repo.CreateOrUpdate(ctx, page); err != nil {
-			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		if err := repo.Create(ctx, page); err != nil {
+			t.Fatalf("Create returned error: %v", err)
 		}
 	}
 
@@ -144,8 +145,8 @@ func TestRandomPageReturnsExistingEntry(t *testing.T) {
 	slugs := []string{"alpha", "beta", "gamma"}
 	for _, slug := range slugs {
 		page := &domainwiki.Page{Slug: slug, HTML: "<p>" + slug + "</p>"}
-		if err := repo.CreateOrUpdate(ctx, page); err != nil {
-			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		if err := repo.Create(ctx, page); err != nil {
+			t.Fatalf("Create returned error: %v", err)
 		}
 	}
 
@@ -202,8 +203,8 @@ func TestMostRecentPageReturnsLatestEntry(t *testing.T) {
 
 	for _, entry := range entries {
 		page := &domainwiki.Page{Slug: entry.slug, HTML: entry.html}
-		if err := repo.CreateOrUpdate(ctx, page); err != nil {
-			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		if err := repo.Create(ctx, page); err != nil {
+			t.Fatalf("Create returned error: %v", err)
 		}
 		if err := repo.db.WithContext(ctx).Model(&PageRecord{}).Where("slug = ?", entry.slug).Update("created_at", entry.created).Error; err != nil {
 			t.Fatalf("updating created_at returned error: %v", err)
@@ -225,6 +226,23 @@ func TestMostRecentPageReturnsLatestEntry(t *testing.T) {
 
 	if page.HTML != "<p>G</p>" {
 		t.Fatalf("expected HTML for most recent page to be preserved, got %q", page.HTML)
+	}
+}
+
+func TestCreateRejectsDuplicateSlug(t *testing.T) {
+	t.Parallel()
+
+	repo := setupRepository(t)
+	ctx := context.Background()
+
+	if err := repo.Create(ctx, &domainwiki.Page{Slug: "alpha", HTML: "<p>A</p>"}); err != nil {
+		t.Fatalf("Create returned error: %v", err)
+	}
+
+	if err := repo.Create(ctx, &domainwiki.Page{Slug: "alpha", HTML: "<p>duplicate</p>"}); err == nil {
+		t.Fatalf("expected duplicate slug to produce error")
+	} else if !strings.Contains(strings.ToLower(err.Error()), "already exists") {
+		t.Fatalf("expected duplicate error message, got %v", err)
 	}
 }
 

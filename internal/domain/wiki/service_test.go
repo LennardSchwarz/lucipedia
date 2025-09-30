@@ -20,7 +20,7 @@ func TestServiceGetPageReturnsExisting(t *testing.T) {
 	ctx := context.Background()
 	repo, generator, searcher := setupServiceDependencies()
 
-	repo.CreateOrUpdate(ctx, &Page{Slug: "alpha", HTML: "  <p>Alpha</p>  "})
+	repo.Create(ctx, &Page{Slug: "alpha", HTML: "  <p>Alpha</p>  "})
 
 	service, err := NewService(repo, generator, searcher, silentLogger(), nil)
 	if err != nil {
@@ -180,8 +180,8 @@ func TestServiceRandomSlugReturnsPersistedSlug(t *testing.T) {
 	}
 
 	for _, slug := range []string{"alpha", "beta"} {
-		if err := repo.CreateOrUpdate(ctx, &Page{Slug: slug, HTML: "<p>" + slug + "</p>"}); err != nil {
-			t.Fatalf("CreateOrUpdate returned error: %v", err)
+		if err := repo.Create(ctx, &Page{Slug: slug, HTML: "<p>" + slug + "</p>"}); err != nil {
+			t.Fatalf("Create returned error: %v", err)
 		}
 	}
 
@@ -293,7 +293,11 @@ func (s *stubRepository) GetBySlug(_ context.Context, slug string) (*Page, error
 	return &copy, nil
 }
 
-func (s *stubRepository) CreateOrUpdate(ctx context.Context, page *Page) error {
+func (s *stubRepository) Create(ctx context.Context, page *Page) error {
+	slug := strings.TrimSpace(page.Slug)
+	if _, exists := s.pages[slug]; exists {
+		return eris.Errorf("page with slug %s already exists", slug)
+	}
 	return s.injectWithTimestamp(ctx, page, time.Now())
 }
 

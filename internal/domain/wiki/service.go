@@ -96,7 +96,7 @@ func (s *service) GetPage(ctx context.Context, slug string) (string, error) {
 	}
 
 	newPage := &Page{Slug: trimmedSlug, HTML: html}
-	if err := s.repo.CreateOrUpdate(ctx, newPage); err != nil {
+	if err := s.repo.Create(ctx, newPage); err != nil {
 		s.recordError(logrus.Fields{"slug": trimmedSlug}, err, "persisting generated page to repository")
 		return "", eris.Wrapf(err, "persisting generated page: %s", trimmedSlug)
 	}
