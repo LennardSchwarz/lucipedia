@@ -33,6 +33,24 @@ type SearchPageData struct {
 	ErrorMessage string
 }
 
+// SearchStreamingShellData holds information required to render the streaming shell for search results.
+type SearchStreamingShellData struct {
+	Title          string
+	Query          string
+	LoadingMessage string
+}
+
+// SearchStreamingContentData wraps the dynamic search data for streaming.
+type SearchStreamingContentData struct {
+	Page SearchPageData
+}
+
+// SearchStreamingErrorData represents an inline error inside the streamed search results.
+type SearchStreamingErrorData struct {
+	Title   string
+	Message string
+}
+
 // ErrorPageData holds information for rendering an error view.
 type ErrorPageData struct {
 	StatusLabel string
@@ -43,4 +61,21 @@ type ErrorPageData struct {
 type WikiPageData struct {
 	Title string
 	HTML  string
+}
+
+// WikiStreamingShellData holds information for the initial streamed layout.
+type WikiStreamingShellData struct {
+	Title          string
+	LoadingMessage string
+}
+
+// WikiStreamingContentData wraps the generated wiki HTML for streaming.
+type WikiStreamingContentData struct {
+	HTML string
+}
+
+// WikiStreamingErrorData represents an inline error message for streaming.
+type WikiStreamingErrorData struct {
+	Title   string
+	Message string
 }
