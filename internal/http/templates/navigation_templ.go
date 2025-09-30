@@ -34,14 +34,14 @@ func Header(query string, pageCount string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if pageCount != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span class=\"text-xs font-normal text-slate-500\">The infinite encyclopedia. ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<span class=\"text-xs font-normal text-slate-500\">The hallucinated encyclopedia. ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(pageCount)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/navigation.templ`, Line: 11, Col: 111}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/http/templates/navigation.templ`, Line: 11, Col: 115}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -52,7 +52,7 @@ func Header(query string, pageCount string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span class=\"text-xs font-normal text-slate-500\">The infinite encyclopedia.</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<span class=\"text-xs font-normal text-slate-500\">The hallucinated encyclopedia.</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
