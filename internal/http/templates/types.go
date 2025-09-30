@@ -44,3 +44,20 @@ type WikiPageData struct {
 	Title string
 	HTML  string
 }
+
+// WikiStreamingShellData holds information for the initial streamed layout.
+type WikiStreamingShellData struct {
+	Title          string
+	LoadingMessage string
+}
+
+// WikiStreamingContentData wraps the generated wiki HTML for streaming.
+type WikiStreamingContentData struct {
+	HTML string
+}
+
+// WikiStreamingErrorData represents an inline error message for streaming.
+type WikiStreamingErrorData struct {
+	Title   string
+	Message string
+}

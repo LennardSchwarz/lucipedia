@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	stdhttp "net/http"
 	"strconv"
@@ -183,33 +184,84 @@ func (s *Server) mostRecentHandler(ctx context.Context, _ *struct{}) (*htmlRespo
 	return newHTMLResponse(stdhttp.StatusOK, body), nil
 }
 
-func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*htmlResponse, error) {
+func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*huma.StreamResponse, error) {
 	slug := strings.TrimSpace(input.Slug)
-	html, err := s.wiki.GetPage(ctx, slug)
-	if err != nil {
-		status, message := classifyError(err)
-		s.recordError(ctx, err, "loading wiki page", logrus.Fields{"slug": slug})
-		return s.renderErrorResponse(ctx, status, message)
-	}
-
 	title := "Lucipedia"
 	if slug != "" {
 		title = fmt.Sprintf("%s • Lucipedia", slug)
 	}
 
-	data := templates.WikiPageData{
-		Title: title,
-		HTML:  html,
+	loadingMessage := "Loading Lucipedia..."
+	if slug != "" {
+		loadingMessage = fmt.Sprintf("Generating \"%s\". You are the first to see this page.", slug)
 	}
 
-	renderCtx := s.contextWithPageCount(ctx, logrus.Fields{"slug": slug})
-	body, err := renderComponent(renderCtx, templates.WikiPage(data))
-	if err != nil {
-		s.recordError(ctx, err, "rendering wiki page", logrus.Fields{"slug": slug})
-		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, errorFallbackMessage)
-	}
+	fields := logrus.Fields{"slug": slug}
 
-	return newHTMLResponse(stdhttp.StatusOK, body), nil
+	return &huma.StreamResponse{
+		Body: func(hctx huma.Context) {
+			hctx.SetHeader("Content-Type", htmlContentType)
+			hctx.SetStatus(stdhttp.StatusOK)
+
+			writer := hctx.BodyWriter()
+			flusher, canFlush := writer.(stdhttp.Flusher)
+
+			renderCtx := s.contextWithPageCount(ctx, fields)
+
+			shell := templates.WikiStreamingShellData{
+				Title:          title,
+				LoadingMessage: loadingMessage,
+			}
+
+			if err := streamComponent(renderCtx, writer, templates.WikiStreamingShell(shell)); err != nil {
+				s.recordError(ctx, err, "streaming wiki shell", fields)
+				fallback := []byte("<article><p>" + errorFallbackMessage + "</p></article>")
+				if _, writeErr := writer.Write(fallback); writeErr != nil {
+					s.recordError(ctx, eris.Wrap(writeErr, "writing wiki shell fallback"), "writing wiki shell fallback", fields)
+				}
+				if canFlush {
+					flusher.Flush()
+				}
+				return
+			}
+
+			if canFlush {
+				flusher.Flush()
+			}
+
+			html, err := s.wiki.GetPage(ctx, slug)
+			if err != nil {
+				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+					return
+				}
+
+				status, message := classifyError(err)
+				hctx.SetStatus(status)
+				s.recordError(ctx, err, "loading wiki page", fields)
+
+				errData := templates.WikiStreamingErrorData{
+					Title:   fmt.Sprintf("%d %s", status, stdhttp.StatusText(status)),
+					Message: message,
+				}
+
+				if streamErr := streamComponent(renderCtx, writer, templates.WikiStreamingError(errData)); streamErr != nil {
+					s.recordError(ctx, streamErr, "streaming wiki error", fields)
+				}
+				if canFlush {
+					flusher.Flush()
+				}
+				return
+			}
+
+			content := templates.WikiStreamingContentData{HTML: html}
+			if err := streamComponent(renderCtx, writer, templates.WikiStreamingContent(content)); err != nil {
+				s.recordError(ctx, err, "streaming wiki content", fields)
+			}
+			if canFlush {
+				flusher.Flush()
+			}
+		},
+	}, nil
 }
 
 func (s *Server) searchHandler(ctx context.Context, input *searchInput) (*htmlResponse, error) {

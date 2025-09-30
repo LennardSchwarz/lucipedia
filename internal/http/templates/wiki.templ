@@ -1,10 +1,71 @@
 package templates
 
+templ WikiArticle(html string) {
+    <article class="prose prose-slate max-w-none">
+        @RawHTML(html)
+    </article>
+}
+
 templ WikiPage(data WikiPageData) {
     @AppLayout(data.Title, "") {
-        <article class="prose prose-slate max-w-none">
-            @RawHTML(data.HTML)
-        </article>
+        @WikiArticle(data.HTML)
     }
 }
 
+templ WikiStreamingShell(data WikiStreamingShellData) {
+    @AppLayout(data.Title, "") {
+        <div id="wiki-content" class="relative min-h-[160px]" data-loaded="loading" aria-live="polite">
+            <div id="wiki-loading" class="flex items-center gap-3 rounded border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 shadow-sm">
+                <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" aria-hidden="true"></span>
+                <span>{ data.LoadingMessage }</span>
+            </div>
+        </div>
+    }
+}
+
+templ WikiStreamingContent(data WikiStreamingContentData) {
+    <template id="wiki-content-template">
+        @WikiArticle(data.HTML)
+    </template>
+    <script>
+        (function () {
+            const container = document.getElementById('wiki-content');
+            const loading = document.getElementById('wiki-loading');
+            const template = document.getElementById('wiki-content-template');
+            if (!container || !template) {
+                return;
+            }
+            container.dataset.loaded = 'ready';
+            if (loading) {
+                loading.remove();
+            }
+            container.appendChild(template.content.cloneNode(true));
+            template.remove();
+        })();
+    </script>
+}
+
+templ WikiStreamingError(data WikiStreamingErrorData) {
+    <template id="wiki-content-template">
+        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800 shadow-sm">
+            <h1 class="text-lg font-semibold">{ data.Title }</h1>
+            <p class="mt-2 text-sm text-red-900">{ data.Message }</p>
+        </div>
+    </template>
+    <script>
+        (function () {
+            const container = document.getElementById('wiki-content');
+            const loading = document.getElementById('wiki-loading');
+            const template = document.getElementById('wiki-content-template');
+            if (!container || !template) {
+                return;
+            }
+            container.dataset.loaded = 'error';
+            if (loading) {
+                loading.remove();
+            }
+            container.appendChild(template.content.cloneNode(true));
+            template.remove();
+        })();
+    </script>
+}

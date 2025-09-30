@@ -86,12 +86,21 @@ func TestWikiRouteReturns404OnUnavailablePage(t *testing.T) {
 
 	srv.ServeHTTP(rec, req)
 
-	if rec.Code != 404 {
-		t.Fatalf("expected status 404, got %d", rec.Code)
+	if rec.Code != stdhttp.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
 	}
 
 	if ct := rec.Header().Get("Content-Type"); ct != htmlContentType {
 		t.Fatalf("expected content type %q, got %q", htmlContentType, ct)
+	}
+
+	body := rec.Body.String()
+	if !contains(body, "The requested page is not available yet.") {
+		t.Fatalf("expected inline error message, got %q", body)
+	}
+
+	if !contains(body, "wiki-content-template") {
+		t.Fatalf("expected streamed template markup, got %q", body)
 	}
 }
 
