@@ -193,7 +193,7 @@ func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*huma.Strea
 
 	loadingMessage := "Loading Lucipedia..."
 	if slug != "" {
-		loadingMessage = fmt.Sprintf("Generating \"%s\". You are the first to see this page.", slug)
+		loadingMessage = fmt.Sprintf("You found a new page! Generating \"%s\"...", slug)
 	}
 
 	fields := logrus.Fields{"slug": slug}
@@ -264,43 +264,92 @@ func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*huma.Strea
 	}, nil
 }
 
-func (s *Server) searchHandler(ctx context.Context, input *searchInput) (*htmlResponse, error) {
+func (s *Server) searchHandler(ctx context.Context, input *searchInput) (*huma.StreamResponse, error) {
 	query := strings.TrimSpace(input.Query)
-	data := templates.SearchPageData{
-		Query: query,
-	}
+	fields := logrus.Fields{"query": query}
 
-	status := stdhttp.StatusOK
-
+	title := "Search • Lucipedia"
+	loadingMessage := "Searching Lucipedia..."
 	if query != "" {
-		results, err := s.wiki.Search(ctx, query, searchResultsLimit)
-		if err != nil {
-			status, message := classifyError(err)
-			s.recordError(ctx, err, "search request failed", logrus.Fields{"query": query})
-			if status == stdhttp.StatusBadRequest {
-				data.ErrorMessage = message
-			} else {
-				return s.renderErrorResponse(ctx, status, message)
-			}
-		} else {
-			data.Results = make([]templates.SearchResultView, 0, len(results))
-			for _, result := range results {
-				data.Results = append(data.Results, templates.SearchResultView{
-					Title: result.Slug,
-					URL:   "/wiki/" + result.Slug,
-				})
-			}
-		}
+		loadingMessage = fmt.Sprintf("Searching for \"%s\"...", query)
 	}
 
-	renderCtx := s.contextWithPageCount(ctx, logrus.Fields{"query": query})
-	body, err := renderComponent(renderCtx, templates.SearchPage(data))
-	if err != nil {
-		s.recordError(ctx, err, "rendering search page", logrus.Fields{"query": query})
-		return s.renderErrorResponse(ctx, stdhttp.StatusInternalServerError, "We couldn't render search results right now.")
-	}
+	return &huma.StreamResponse{
+		Body: func(hctx huma.Context) {
+			hctx.SetHeader("Content-Type", htmlContentType)
+			hctx.SetStatus(stdhttp.StatusOK)
 
-	return newHTMLResponse(status, body), nil
+			writer := hctx.BodyWriter()
+			flusher, canFlush := writer.(stdhttp.Flusher)
+
+			renderCtx := s.contextWithPageCount(ctx, fields)
+
+			shell := templates.SearchStreamingShellData{
+				Title:          title,
+				Query:          query,
+				LoadingMessage: loadingMessage,
+			}
+
+			if err := streamComponent(renderCtx, writer, templates.SearchStreamingShell(shell)); err != nil {
+				s.recordError(ctx, err, "streaming search shell", fields)
+				fallback := []byte("<article><p>" + errorFallbackMessage + "</p></article>")
+				if _, writeErr := writer.Write(fallback); writeErr != nil {
+					s.recordError(ctx, eris.Wrap(writeErr, "writing search shell fallback"), "writing search shell fallback", fields)
+				}
+				if canFlush {
+					flusher.Flush()
+				}
+				return
+			}
+
+			if canFlush {
+				flusher.Flush()
+			}
+
+			pageData := templates.SearchPageData{Query: query}
+
+			if query != "" {
+				results, err := s.wiki.Search(ctx, query, searchResultsLimit)
+				if err != nil {
+					status, message := classifyError(err)
+					hctx.SetStatus(status)
+					s.recordError(ctx, err, "search request failed", fields)
+
+					if status == stdhttp.StatusBadRequest {
+						pageData.ErrorMessage = message
+					} else {
+						errData := templates.SearchStreamingErrorData{
+							Title:   fmt.Sprintf("%d %s", status, stdhttp.StatusText(status)),
+							Message: message,
+						}
+						if streamErr := streamComponent(renderCtx, writer, templates.SearchStreamingError(errData)); streamErr != nil {
+							s.recordError(ctx, streamErr, "streaming search error", fields)
+						}
+						if canFlush {
+							flusher.Flush()
+						}
+						return
+					}
+				} else {
+					pageData.Results = make([]templates.SearchResultView, 0, len(results))
+					for _, result := range results {
+						pageData.Results = append(pageData.Results, templates.SearchResultView{
+							Title: result.Slug,
+							URL:   "/wiki/" + result.Slug,
+						})
+					}
+				}
+			}
+
+			content := templates.SearchStreamingContentData{Page: pageData}
+			if err := streamComponent(renderCtx, writer, templates.SearchStreamingContent(content)); err != nil {
+				s.recordError(ctx, err, "streaming search content", fields)
+			}
+			if canFlush {
+				flusher.Flush()
+			}
+		},
+	}, nil
 }
 
 func (s *Server) healthHandler(ctx context.Context, _ *struct{}) (*healthResponse, error) {

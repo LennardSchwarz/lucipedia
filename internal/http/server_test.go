@@ -211,12 +211,17 @@ func TestSearchRouteRendersResults(t *testing.T) {
 
 	srv.ServeHTTP(rec, req)
 
-	if rec.Code != 200 {
+	if rec.Code != stdhttp.StatusOK {
 		t.Fatalf("expected status 200, got %d", rec.Code)
 	}
 
-	if !contains(rec.Body.String(), "/wiki/alpha") {
-		t.Fatalf("expected search results to include wiki link, got %q", rec.Body.String())
+	body := rec.Body.String()
+	if !contains(body, "search-content-template") {
+		t.Fatalf("expected streamed search template in body, got %q", body)
+	}
+
+	if !contains(body, "/wiki/alpha") {
+		t.Fatalf("expected search results to include wiki link, got %q", body)
 	}
 }
 
@@ -231,12 +236,21 @@ func TestSearchRouteReturns500OnFailure(t *testing.T) {
 
 	srv.ServeHTTP(rec, req)
 
-	if rec.Code != 500 {
-		t.Fatalf("expected status 500, got %d", rec.Code)
+	if rec.Code != stdhttp.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
 	}
 
 	if ct := rec.Header().Get("Content-Type"); ct != htmlContentType {
 		t.Fatalf("expected content type %q, got %q", htmlContentType, ct)
+	}
+
+	body := rec.Body.String()
+	if !contains(body, "search-content-template") {
+		t.Fatalf("expected streamed error template, got %q", body)
+	}
+
+	if !contains(body, "We couldn&#39;t process your request right now.") {
+		t.Fatalf("expected fallback error message, got %q", body)
 	}
 }
 
