@@ -1,0 +1,23 @@
+package templates
+
+templ AllPagesPage(data AllPagesPageData) {
+    @AppLayout("All Pages • Lucipedia", "") {
+        <article class="max-w-3xl">
+            <header class="border-b border-slate-200 pb-4">
+                <h1 class="text-3xl font-bold text-slate-900">All Lucipedia Pages</h1>
+                <p class="mt-2 text-sm text-slate-600">Browse every page that has been generated so far.</p>
+            </header>
+            if len(data.Pages) == 0 {
+                <p class="mt-6 text-base text-slate-700">Lucipedia doesn't have any pages yet. Use search to generate the first article.</p>
+            } else {
+                <ul class="mt-6 space-y-3 text-base text-slate-800 list-disc pl-5">
+                    for _, page := range data.Pages {
+                        <li>
+                            <a class="text-indigo-600 hover:text-indigo-700 hover:underline" href={ page.URL }>{ page.Title }</a>
+                        </li>
+                    }
+                </ul>
+            }
+        </article>
+    }
+}
