@@ -100,6 +100,8 @@ func (s *Server) registerRoutes() {
 	s.mux.HandleFunc("GET /favicon.ico", faviconHandler)
 	s.mux.HandleFunc("HEAD /favicon.ico", faviconHandler)
 
+	s.registerStaticRoute()
+
 	s.registerHomeRoute()
 	s.registerAllPagesRoute()
 	s.registerRandomRoute()

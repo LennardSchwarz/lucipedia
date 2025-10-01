@@ -231,7 +231,7 @@ func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*huma.Strea
 
 	loadingMessage := "Loading Lucipedia..."
 	if slug != "" {
-		loadingMessage = fmt.Sprintf("You found a new page! Generating \"%s\"...", slug)
+		loadingMessage = fmt.Sprintf("Generating new article on \"%s\"...", slug)
 	}
 
 	fields := logrus.Fields{"slug": slug}
