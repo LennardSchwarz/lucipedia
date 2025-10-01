@@ -20,7 +20,9 @@ func TestServiceGetPageReturnsExisting(t *testing.T) {
 	ctx := context.Background()
 	repo, generator, searcher := setupServiceDependencies()
 
-	repo.Create(ctx, &Page{Slug: "alpha", HTML: "  <p>Alpha</p>  "})
+	if err := repo.Create(ctx, &Page{Slug: "alpha", HTML: "  <p>Alpha</p>  "}); err != nil {
+		t.Fatalf("Create returned error: %v", err)
+	}
 
 	service, err := NewService(repo, generator, searcher, silentLogger(), nil)
 	if err != nil {
@@ -251,7 +253,9 @@ func TestServiceMostRecentPageReturnsLatestEntry(t *testing.T) {
 
 	for idx, slug := range slugs {
 		page := &Page{Slug: slug, HTML: "  <p>" + slug + "</p>  "}
-		repo.injectWithTimestamp(ctx, page, time.Now().Add(time.Duration(timestamps[idx])*time.Hour))
+		if err := repo.injectWithTimestamp(ctx, page, time.Now().Add(time.Duration(timestamps[idx])*time.Hour)); err != nil {
+			t.Fatalf("injectWithTimestamp returned error: %v", err)
+		}
 	}
 
 	page, err := service.MostRecentPage(ctx)
@@ -271,6 +275,7 @@ func TestServiceMostRecentPageReturnsLatestEntry(t *testing.T) {
 type stubRepository struct {
 	pages        map[string]*storedPage
 	createdOrder []string
+	random       *rand.Rand
 }
 
 type storedPage struct {
@@ -281,7 +286,10 @@ type storedPage struct {
 var _ Repository = (*stubRepository)(nil)
 
 func newStubRepository() *stubRepository {
-	return &stubRepository{pages: make(map[string]*storedPage)}
+	return &stubRepository{
+		pages:  make(map[string]*storedPage),
+		random: rand.New(rand.NewSource(time.Now().UnixNano())),
+	}
 }
 
 func (s *stubRepository) GetBySlug(_ context.Context, slug string) (*Page, error) {
@@ -345,7 +353,7 @@ func (s *stubRepository) RandomPage(_ context.Context) (*Page, error) {
 	for slug := range s.pages {
 		slugs = append(slugs, slug)
 	}
-	chosen := slugs[rand.Intn(len(slugs))]
+	chosen := slugs[s.random.Intn(len(slugs))]
 	copy := s.pages[chosen].page
 	return &copy, nil
 }
@@ -379,7 +387,6 @@ func setupServiceDependencies() (*stubRepository, *stubGenerator, domainllm.Sear
 	repo := newStubRepository()
 	generator := &stubGenerator{}
 	searcher := &stubSearcher{}
-	rand.Seed(time.Now().UnixNano())
 	return repo, generator, searcher
 }
 
