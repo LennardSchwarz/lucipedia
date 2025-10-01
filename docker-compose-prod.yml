@@ -11,7 +11,7 @@ services:
       LLM_API_KEY: ${LLM_API_KEY}
       LLM_MODELS: ${LLM_MODELS}
       SENTRY_DSN: ${SENTRY_DSN:-}
-      ENV: prod
+      ENV: ${ENV}
     networks:
       - traefik-proxy
       - internal
