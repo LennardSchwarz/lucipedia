@@ -1,12 +1,10 @@
 # Lucipedia
 
-Check it out here: [lucipedia.lenn.rocks](https://lucipedia.lenn.rocks)
+[lucipedia.lenn.rocks](https://lucipedia.lenn.rocks)
 
-Lucipedia is a continuously generated encyclopedia where every page is hallucinated AI slop. Like Wikipedia, but without the quality.
+Lucipedia is a continuously generated encyclopedia where every page is hallucinated AI slop.
 
-Have fun and happy exploring!
-
-Whenever you open a page, Lucipedia first checks whether the article already exists. If it doesn't, mistralai/mistral-small-3.2-24b-instruct writes it on the fly and saves it for future explorers.
+Whenever you open a page, Lucipedia first checks whether the article already exists. If it doesn't, mistralai/mistral-small-3.2-24b-instruct writes it on the fly and saves it.
 
 ## Deployment
 
