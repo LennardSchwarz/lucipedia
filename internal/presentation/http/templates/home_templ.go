@@ -41,13 +41,17 @@ func HomePage(data HomePageData) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<article class=\"max-w-2xl\"><header class=\"border-b border-slate-200 pb-4\"><h1 class=\"text-3xl font-bold text-slate-900\">Lucipedia</h1></header><section class=\"mt-6 space-y-4 text-base leading-7 text-slate-700\"><p>Lucipedia is a continuously generated encyclopedia where every page is AI-generated. Inspired by <a href=\"https://wikipedia.com\" target=\"_blank\" class=\"underline\">Wikipedia</a>, it allows users to collectively explore the knowledge inside a large language model.</p><p>Whenever you open a page, Lucipedia first checks whether the article already exists. If it doesn't, <code>mistralai/mistral-small-3.2-24b-instruct</code> writes it on the fly and saves it for future explorers.</p><p>Treat the content with caution. AI-generated content can be <a href=\"https://en.m.wikipedia.org/wiki/Hallucination_(artificial_intelligence)\" class=\"underline\">incorrect</a>.</p><p>Get started by searching for a topic or visiting a <a href=\"/random\" class=\"underline\">random page</a>.</p><p>Built by <a href=\"https://github.com/LennardSchwarz\" class=\"underline\">Lennard</a>. Happy exploring!</p></section></article>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<main class=\"flex flex-1 flex-col items-center justify-center px-6 py-16 sm:py-24\"><div class=\"w-full max-w-3xl space-y-12 text-center\"><div class=\"flex flex-col items-center gap-4\"><img src=\"/static/icon.png\" alt=\"Lucipedia icon\" class=\"h-12 w-12 sm:h-14 sm:w-14\"><div class=\"space-y-2\"><h1 class=\"text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl\">Lucipedia</h1><p class=\"text-base text-slate-500 sm:text-lg\">The hallucinated encyclopedia. Like wikipedia, but only AI-slop.</p></div></div><form action=\"/search\" method=\"get\" class=\"mx-auto flex w-full max-w-2xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-center\"><label class=\"sr-only\" for=\"home-search-input\">Search Lucipedia</label> <input class=\"w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-base text-slate-800 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400\" id=\"home-search-input\" name=\"q\" placeholder=\"Search Lucipedia\" type=\"search\" maxlength=\"80\"> <button type=\"submit\" class=\"w-full rounded-full bg-indigo-600 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto\">Search</button></form></div></main>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = Footer().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = AppLayout("Lucipedia", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = BaseLayout("Lucipedia").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

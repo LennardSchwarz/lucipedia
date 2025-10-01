@@ -37,8 +37,8 @@ func TestHomeRouteRendersPage(t *testing.T) {
 		t.Fatalf("expected body to contain site title, got %q", body)
 	}
 
-	if !contains(body, "42 pages discovered so far") {
-		t.Fatalf("expected page count in body, got %q", body)
+	if !contains(body, "Undiscovered articles are generated on demand.")  {
+		t.Fatalf("expected footer copy with page count in body, got %q", body)
 	}
 }
 
@@ -66,7 +66,7 @@ func TestWikiRouteServesHTML(t *testing.T) {
 		t.Fatalf("expected header markup in body, got %q", body)
 	}
 
-	if !contains(body, "Lucipedia pages are generated on demand") {
+	if !contains(body, "Undiscovered articles are generated on demand.") || !contains(body, "1 articles generated so far.") {
 		t.Fatalf("expected footer note in body, got %q", body)
 	}
 }
@@ -145,7 +145,7 @@ func TestMostRecentRouteServesHTML(t *testing.T) {
 		t.Fatalf("expected header markup in body, got %q", body)
 	}
 
-	if !contains(body, "Lucipedia pages are generated on demand") {
+	if !contains(body, "Undiscovered articles are generated on demand.") || !contains(body, "1 articles generated so far.") {
 		t.Fatalf("expected footer note in body, got %q", body)
 	}
 

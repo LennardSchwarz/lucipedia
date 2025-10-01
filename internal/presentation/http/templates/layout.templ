@@ -22,9 +22,8 @@ templ BaseLayout(title string) {
 templ AppLayout(title string, query string) {
     @BaseLayout(title) {
         @Header(query, PageCountFromContext(ctx))
-        <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 lg:gap-8 lg:py-4 lg:flex-row lg:gap-12">
-            @Sidebar()
-            <main class="flex-1 pt-4">
+        <div class="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-8 sm:px-8">
+            <main class="flex-1">
                 { children... }
             </main>
         </div>
@@ -33,8 +32,8 @@ templ AppLayout(title string, query string) {
 }
 
 templ Footer() {
-    <footer class="mt-auto border-t border-slate-200 bg-slate-50/80 py-6">
-        <div class="mx-auto text-center max-w-6xl px-6 text-xs text-slate-500">Lucipedia pages are generated on demand. Give it a few seconds. Made by <a href="https://github.com/LennardSchwarz" class="underline">Lennard</a>.</div>
+    <footer class="mt-auto border-t border-slate-200 bg-slate-50/80 py-4 text-center text-xs text-slate-500">
+        <p class="px-2">Undiscovered articles are generated on demand. { PageCountFromContext(ctx) } articles generated so far.</p>
+        <p class="pt-2">Check it out on <a href="https://github.com/LennardSchwarz/lucipedia" target="_blank" class="underline">GitHub</a>.</p>
     </footer>
 }
-
