@@ -66,9 +66,9 @@ func TestWikiRouteServesHTML(t *testing.T) {
 		t.Fatalf("expected header markup in body, got %q", body)
 	}
 
-	if !contains(body, "Undiscovered articles are generated on demand.") || !contains(body, "1 articles generated so far.") {
-		t.Fatalf("expected footer note in body, got %q", body)
-	}
+    if !contains(body, "Undiscovered articles are generated on demand.") || !contains(body, "1 articles discovered so far.") {
+        t.Fatalf("expected footer note in body, got %q", body)
+    }
 }
 
 func TestWikiRouteReturns404OnUnavailablePage(t *testing.T) {
@@ -145,9 +145,9 @@ func TestMostRecentRouteServesHTML(t *testing.T) {
 		t.Fatalf("expected header markup in body, got %q", body)
 	}
 
-	if !contains(body, "Undiscovered articles are generated on demand.") || !contains(body, "1 articles generated so far.") {
-		t.Fatalf("expected footer note in body, got %q", body)
-	}
+    if !contains(body, "Undiscovered articles are generated on demand.") || !contains(body, "1 articles discovered so far.") {
+        t.Fatalf("expected footer note in body, got %q", body)
+    }
 
 }
 
