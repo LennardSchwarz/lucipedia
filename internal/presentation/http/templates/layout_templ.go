@@ -155,7 +155,7 @@ func Footer() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " articles generated so far.</p><p class=\"pt-2\">Check it out on <a href=\"https://github.com/LennardSchwarz/lucipedia\" target=\"_blank\" class=\"underline\">GitHub</a>.</p></footer>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " articles discovered so far.</p><p class=\"pt-2\">Check it out on <a href=\"https://github.com/LennardSchwarz/lucipedia\" target=\"_blank\" class=\"underline\">GitHub</a>.</p></footer>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

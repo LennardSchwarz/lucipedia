@@ -86,7 +86,7 @@ func (s *Server) registerWikiRoute() {
 
 func (s *Server) registerSearchRoute() {
 	huma.Get(s.api, "/search", s.searchHandler, htmlOperation(
-		"Search Lucipedia",
+		"Discover a new article",
 		stdhttp.StatusBadRequest,
 		stdhttp.StatusInternalServerError,
 	))
@@ -231,7 +231,7 @@ func (s *Server) wikiHandler(ctx context.Context, input *wikiInput) (*huma.Strea
 
 	loadingMessage := "Loading Lucipedia..."
 	if slug != "" {
-		loadingMessage = fmt.Sprintf("Generating new article on \"%s\"...", slug)
+		loadingMessage = fmt.Sprintf("You are the first to discover \"%s\"! Generating brand new article...", slug)
 	}
 
 	fields := logrus.Fields{"slug": slug}
