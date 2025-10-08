@@ -4,23 +4,19 @@ templ Header(query string, pageCount string) {
     <header class="top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div class="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
             <a href="/" aria-label="Lucipedia home" class="flex items-center gap-3 text-xl font-semibold text-slate-900">
-                <span class="text-2xl">📚</span>
+                <img src="/static/icon.png" alt="Lucipedia icon" class="h-9 w-9" />
                 <div class="flex flex-col">
                     <span>Lucipedia</span>
-                    if pageCount != "" {
-                        <span class="text-xs font-normal text-slate-500">The hallucinated encyclopedia. { pageCount } pages discovered so far.</span>
-                    } else {
-                        <span class="text-xs font-normal text-slate-500">The hallucinated encyclopedia.</span>
-                    }
+                    <span class="text-xs font-normal text-slate-500">The user discovered AI encyclopedia. </span>
                 </div>
             </a>
             <form action="/search" method="get" class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                <label class="sr-only" for="search-input">Search Lucipedia</label>
+                <label class="sr-only" for="search-input">Discover a new article</label>
                 <input
                     class="min-w-0 flex-1 rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:flex-none sm:w-64"
                     id="search-input"
                     name="q"
-                    placeholder="Search Lucipedia"
+                    placeholder="Discover a new article"
                     type="search"
                     maxlength="80"
                     value={ query }
@@ -32,20 +28,4 @@ templ Header(query string, pageCount string) {
             </form>
         </div>
     </header>
-}
-
-templ Sidebar() {
-    <aside class="w-full border-b border-slate-200 pb-6 pt-6 text-sm text-slate-700 lg:w-40 lg:shrink-0">
-        <nav class="space-y-4">
-            <div>
-                <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Navigation</h2>
-        <ul class="space-y-1 pl-2">
-            <li><a class="text-blue-600 hover:text-blue-700 hover:underline" href="/">Main page</a></li>
-            <li><a class="text-blue-600 hover:text-blue-700 hover:underline" href="/all">All pages</a></li>
-            <li><a class="text-blue-600 hover:text-blue-700 hover:underline" href="/random">Random page</a></li>
-            <li><a class="text-blue-600 hover:text-blue-700 hover:underline" href="/most-recent">Most recent</a></li>
-        </ul>
-            </div>
-        </nav>
-    </aside>
 }
