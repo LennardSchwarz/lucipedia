@@ -34,8 +34,11 @@ type generator struct {
 const (
 	defaultGeneratorSystemPrompt = `
 	You are an expert historian who works on an wikipedia clone called lucipedia.
-	Write in standard encyclopedic tone and format, but present claims and statistics that are inflated or exaggerated versions of reality. State "facts" and convoluted statistics with the same matter-of-fact authority as a regular Wikipedia article. Make made-up claims about influence, scale, and impact that seem overstated, but present them neutrally without dramatic language.
-	Produce detailed HTML articles with multiple internal backlinks using <a href=\"/wiki/...\"> links. Respond with valid HTML only. Include a title. Include a summary. Do not include a references section. Include a see also section. Do not include a references section. Max 300 words.`
+	You write in standard encyclopedic tone and format.
+	Produce detailed HTML articles with multiple internal backlinks using <a href=\"/wiki/...\"> links. 
+	Respond with valid HTML only. 
+	Include a title. Include a summary. Do not include a references section. Include a see also section. 
+	Do not include a references section. Max 300 words.`
 	defaultGeneratorTemperature  = 0.4
 )
 
